@@ -1,5 +1,5 @@
 // prisma/schema.prisma
-// Dev: SQLite | Prod: PostgreSQL configuré pour Railway
+// Dev: SQLite | Prod: changez provider en "postgresql" et DATABASE_URL en conséquence
 
 generator client {
   provider = "prisma-client-js"
@@ -11,4 +11,28 @@ datasource db {
 }
 
 model User {
-  // ... (le reste ne change pas)
+  id           String    @id @default(uuid())
+  username     String    @unique
+  email        String    @unique
+  passwordHash String?
+  provider     String    @default("local") // local | google | apple | facebook
+  providerId   String?
+  avatar       String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  conversions  Conversion[]
+}
+
+model Conversion {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalName String
+  originalSize Int
+  fileType     String
+  pdfName      String
+  pdfSize      Int?
+  status       String   @default("pending") // pending | processing | done | error
+  errorMsg     String?
+  createdAt    DateTime @default(now())
+}
