@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -7,1321 +8,1012 @@
 <meta name="description" content="Convertissez vos images et fichiers en PDF facilement. Projet étudiant open source.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<!-- jsPDF pour la conversion côté client -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 /* ════════════════════════════════════════════
-   DESIGN SYSTEM
+DESIGN SYSTEM
 ════════════════════════════════════════════ */
 :root {
-  --bg:       #0D0F14;
-  --surface:  #13161E;
-  --raised:   #1A1E29;
-  --border:   rgba(255,255,255,0.07);
-  --border2:  rgba(255,255,255,0.12);
-  --text:     #F0F2F8;
-  --muted:    #6B7280;
-  --subtle:   #9CA3AF;
+--bg: #0D0F14;
+--surface: #13161E;
+--raised: #1A1E29;
+--border: rgba(255,255,255,0.07);
+--border2: rgba(255,255,255,0.12);
+--text: #F0F2F8;
+--muted: #6B7280;
+--subtle: #9CA3AF;
 
-  --accent:   #FF6B35;
-  --accent2:  #FF9A5C;
-  --accentbg: rgba(255,107,53,0.1);
-  --accentbd: rgba(255,107,53,0.25);
+–accent: #FF6B35;
+–accent2: #FF9A5C;
+–accentbg: rgba(255,107,53,0.1);
+–accentbd: rgba(255,107,53,0.25);
 
-  --green:    #22C55E;
-  --greenbg:  rgba(34,197,94,0.1);
-  --red:      #EF4444;
-  --redbg:    rgba(239,68,68,0.1);
-  --blue:     #60A5FA;
+–green: #22C55E;
+–greenbg: rgba(34,197,94,0.1);
+–red: #EF4444;
+–redbg: rgba(239,68,68,0.1);
+–blue: #60A5FA;
 
-  --glow:     0 0 40px rgba(255,107,53,0.15);
-  --shadow:   0 4px 24px rgba(0,0,0,0.4);
-  --shadow-lg:0 12px 48px rgba(0,0,0,0.6);
+–glow: 0 0 40px rgba(255,107,53,0.15);
+–shadow: 0 4px 24px rgba(0,0,0,0.4);
+–shadow-lg:0 12px 48px rgba(0,0,0,0.6);
 
-  --radius:   14px;
-  --radius-lg:20px;
-  --radius-xl:28px;
+–radius: 14px;
+–radius-lg:20px;
+–radius-xl:28px;
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 
 body {
-  font-family: 'Instrument Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
+font-family: ‘Instrument Sans’, sans-serif;
+background: var(–bg);
+color: var(–text);
+min-height: 100vh;
+overflow-x: hidden;
 }
 
-/* Background mesh */
 body::before {
-  content:'';
-  position:fixed;inset:0;
-  background:
-    radial-gradient(ellipse 600px 400px at 20% 10%, rgba(255,107,53,0.06) 0%, transparent 70%),
-    radial-gradient(ellipse 500px 500px at 80% 80%, rgba(96,165,250,0.04) 0%, transparent 70%);
-  pointer-events:none;z-index:0;
+content:’’;
+position:fixed;inset:0;
+background:
+radial-gradient(ellipse 600px 400px at 20% 10%, rgba(255,107,53,0.06) 0%, transparent 70%),
+radial-gradient(ellipse 500px 500px at 80% 80%, rgba(96,165,250,0.04) 0%, transparent 70%);
+pointer-events:none;z-index:0;
 }
 
-/* ── UTILS ──────────────────────────────── */
 .page{display:none;position:relative;z-index:1}
 .page.active{display:block}
 
-h1,h2,h3,h4{font-family:'Cabinet Grotesk',sans-serif}
+h1,h2,h3,h4{font-family:‘Cabinet Grotesk’,sans-serif}
 
-a{color:var(--accent);text-decoration:none}
+a{color:var(–accent);text-decoration:none}
 a:hover{text-decoration:underline}
 
-.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
-
-/* ── SCROLLBAR ──────────────────────────── */
 ::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:var(--raised);border-radius:4px}
+::-webkit-scrollbar-track{background:var(–bg)}
+::-webkit-scrollbar-thumb{background:var(–raised);border-radius:4px}
 
-/* ════════════════════════════════════════════
-   NAV
-════════════════════════════════════════════ */
+/* ── NAV ──────────────────────────────────── */
 nav {
-  display:flex;align-items:center;justify-content:space-between;
-  padding:16px 32px;
-  background:rgba(13,15,20,0.8);
-  backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--border);
-  position:sticky;top:0;z-index:200;
+display:flex;align-items:center;justify-content:space-between;
+padding:16px 32px;
+background:rgba(13,15,20,0.85);
+backdrop-filter:blur(20px);
+border-bottom:1px solid var(–border);
+position:sticky;top:0;z-index:200;
 }
 
 .logo {
-  display:flex;align-items:center;gap:10px;
-  font-family:'Cabinet Grotesk',sans-serif;
-  font-weight:800;font-size:20px;color:var(--text);
-  cursor:pointer;text-decoration:none;
-  letter-spacing:-0.3px;
+display:flex;align-items:center;gap:10px;
+font-family:‘Cabinet Grotesk’,sans-serif;
+font-weight:800;font-size:20px;color:var(–text);
+cursor:pointer;text-decoration:none;
+letter-spacing:-0.3px;
 }
 .logo-mark {
-  width:34px;height:34px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;
-  box-shadow:0 4px 16px rgba(255,107,53,0.35);
+width:34px;height:34px;
+background:linear-gradient(135deg,var(–accent),var(–accent2));
+border-radius:10px;
+display:flex;align-items:center;justify-content:center;
+font-size:18px;
+box-shadow:0 4px 16px rgba(255,107,53,0.35);
 }
-.logo em{font-style:normal;color:var(--accent)}
+.logo em{font-style:normal;color:var(–accent)}
 
-.nav-center {
-  position:absolute;left:50%;transform:translateX(-50%);
-  display:flex;align-items:center;gap:4px;
-}
+.nav-links{display:flex;align-items:center;gap:4px;}
 .nav-pill {
-  padding:6px 16px;border-radius:100px;
-  font-size:14px;font-weight:500;color:var(--muted);
-  cursor:pointer;transition:all .2s;border:none;background:none;
-  font-family:'Instrument Sans',sans-serif;
+padding:6px 16px;border-radius:100px;
+font-size:14px;font-weight:500;color:var(–muted);
+cursor:pointer;transition:all .2s;border:none;background:none;
+font-family:‘Instrument Sans’,sans-serif;
 }
-.nav-pill:hover{color:var(--text);background:var(--raised)}
-.nav-pill.active{color:var(--text);background:var(--raised)}
+.nav-pill:hover{color:var(–text);background:var(–raised)}
+.nav-pill.active{color:var(–text);background:var(–raised)}
 
-.nav-right{display:flex;align-items:center;gap:10px}
-
-/* ════════════════════════════════════════════
-   BUTTONS
-════════════════════════════════════════════ */
+/* ── BUTTONS ──────────────────────────────── */
 .btn {
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  padding:10px 20px;border-radius:var(--radius);border:none;
-  font-family:'Instrument Sans',sans-serif;font-weight:500;font-size:14px;
-  cursor:pointer;transition:all .2s;line-height:1;white-space:nowrap;
+display:inline-flex;align-items:center;justify-content:center;gap:8px;
+padding:10px 20px;border-radius:var(–radius);border:none;
+font-family:‘Instrument Sans’,sans-serif;font-weight:500;font-size:14px;
+cursor:pointer;transition:all .2s;line-height:1;white-space:nowrap;
 }
 .btn-sm{padding:7px 14px;font-size:13px;border-radius:10px}
-.btn-lg{padding:14px 28px;font-size:16px;font-weight:700;border-radius:var(--radius-lg)}
+.btn-lg{padding:14px 28px;font-size:16px;font-weight:700;border-radius:var(–radius-lg)}
 
 .btn-primary{
-  background:linear-gradient(135deg,var(--accent),#E55A2B);
-  color:white;box-shadow:0 4px 16px rgba(255,107,53,0.3);
+background:linear-gradient(135deg,var(–accent),#E55A2B);
+color:white;box-shadow:0 4px 16px rgba(255,107,53,0.3);
 }
 .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(255,107,53,0.45)}
 .btn-primary:active{transform:translateY(0)}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
 
 .btn-ghost{
-  background:transparent;color:var(--subtle);
-  border:1px solid var(--border2);
+background:transparent;color:var(–subtle);
+border:1px solid var(–border2);
 }
-.btn-ghost:hover{color:var(--text);border-color:var(--border2);background:var(--raised)}
+.btn-ghost:hover{color:var(–text);background:var(–raised)}
 
-.btn-surface{background:var(--raised);color:var(--text);border:1px solid var(--border)}
-.btn-surface:hover{background:var(--border2)}
-
-.btn-danger{background:var(--redbg);color:var(--red);border:1px solid rgba(239,68,68,.2)}
-.btn-danger:hover{background:rgba(239,68,68,.2)}
-
-/* ════════════════════════════════════════════
-   HERO
-════════════════════════════════════════════ */
+/* ── HERO ─────────────────────────────────── */
 .hero {
-  text-align:center;
-  padding:88px 24px 64px;
-  max-width:640px;margin:0 auto;
+text-align:center;
+padding:80px 24px 56px;
+max-width:660px;margin:0 auto;
 }
-
 .hero-eyebrow {
-  display:inline-flex;align-items:center;gap:8px;
-  background:var(--accentbg);border:1px solid var(--accentbd);
-  color:var(--accent2);padding:6px 14px;border-radius:100px;
-  font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
-  margin-bottom:28px;
+display:inline-flex;align-items:center;gap:8px;
+background:var(–accentbg);border:1px solid var(–accentbd);
+color:var(–accent2);padding:6px 14px;border-radius:100px;
+font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+margin-bottom:28px;
 }
-
 .hero h1 {
-  font-size:clamp(40px,7vw,68px);font-weight:800;
-  line-height:1.05;letter-spacing:-2px;
-  margin-bottom:20px;
-  background:linear-gradient(160deg,var(--text) 40%,var(--muted));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+font-size:clamp(38px,7vw,66px);font-weight:800;
+line-height:1.05;letter-spacing:-2px;
+margin-bottom:20px;
+background:linear-gradient(160deg,var(–text) 40%,var(–muted));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
 .hero h1 .accent{
-  -webkit-text-fill-color:transparent;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  -webkit-background-clip:text;background-clip:text;
+-webkit-text-fill-color:transparent;
+background:linear-gradient(135deg,var(–accent),var(–accent2));
+-webkit-background-clip:text;background-clip:text;
 }
-
 .hero p{
-  font-size:17px;color:var(--subtle);line-height:1.7;
-  margin-bottom:0;max-width:480px;margin-inline:auto;
+font-size:17px;color:var(–subtle);line-height:1.7;
+max-width:480px;margin:0 auto 16px;
 }
-
 .student-badge {
-  display:inline-flex;align-items:center;gap:6px;
-  background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.2);
-  color:var(--blue);padding:5px 12px;border-radius:100px;
-  font-size:11px;font-weight:600;letter-spacing:.4px;
-  margin-top:16px;
+display:inline-flex;align-items:center;gap:6px;
+background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.2);
+color:var(–blue);padding:5px 12px;border-radius:100px;
+font-size:11px;font-weight:600;letter-spacing:.4px;
 }
 
-/* ════════════════════════════════════════════
-   DROP ZONE
-════════════════════════════════════════════ */
+/* ── DROP ZONE ────────────────────────────── */
 .converter-wrap {
-  max-width:680px;margin:0 auto;padding:0 20px 80px;
+max-width:700px;margin:0 auto;padding:0 20px 80px;
 }
 
 .drop-zone {
-  background:var(--surface);
-  border:2px dashed var(--border2);
-  border-radius:var(--radius-xl);
-  padding:56px 32px;
-  text-align:center;
-  cursor:pointer;
-  transition:all .25s;
-  position:relative;overflow:hidden;
+background:var(–surface);
+border:2px dashed var(–border2);
+border-radius:var(–radius-xl);
+padding:56px 32px;
+text-align:center;
+cursor:pointer;
+transition:all .25s;
+position:relative;overflow:hidden;
 }
 .drop-zone::before {
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at 50% 0%, rgba(255,107,53,0.06), transparent 70%);
-  opacity:0;transition:opacity .25s;
+content:’’;position:absolute;inset:0;
+background:radial-gradient(ellipse at 50% 0%, rgba(255,107,53,0.06), transparent 70%);
+opacity:0;transition:opacity .25s;
 }
 .drop-zone:hover,.drop-zone.over {
-  border-color:var(--accent);
-  box-shadow:var(--glow);
+border-color:var(–accent);
+box-shadow:var(–glow);
 }
 .drop-zone:hover::before,.drop-zone.over::before{opacity:1}
 
 .drop-icon-ring {
-  width:76px;height:76px;margin:0 auto 22px;
-  background:var(--raised);border:1.5px solid var(--border2);
-  border-radius:22px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:34px;position:relative;z-index:1;
-  transition:transform .25s;
+width:76px;height:76px;margin:0 auto 22px;
+background:var(–raised);border:1.5px solid var(–border2);
+border-radius:22px;
+display:flex;align-items:center;justify-content:center;
+font-size:34px;position:relative;z-index:1;
+transition:transform .25s;
 }
 .drop-zone:hover .drop-icon-ring{transform:scale(1.05) translateY(-2px)}
 
 .drop-zone h3{
-  font-family:'Cabinet Grotesk',sans-serif;
-  font-size:19px;font-weight:700;margin-bottom:6px;
-  position:relative;z-index:1;
+font-family:‘Cabinet Grotesk’,sans-serif;
+font-size:19px;font-weight:700;margin-bottom:6px;
+position:relative;z-index:1;
 }
-.drop-zone p{color:var(--muted);font-size:14px;position:relative;z-index:1}
+.drop-zone p{color:var(–muted);font-size:14px;position:relative;z-index:1}
 
 .format-chips {
-  display:flex;flex-wrap:wrap;gap:6px;justify-content:center;
-  margin-top:20px;position:relative;z-index:1;
+display:flex;flex-wrap:wrap;gap:6px;justify-content:center;
+margin-top:20px;position:relative;z-index:1;
 }
 .chip {
-  background:var(--raised);border:1px solid var(--border);
-  color:var(--muted);padding:3px 9px;border-radius:6px;
-  font-size:11px;font-weight:700;letter-spacing:.4px;
+background:var(–raised);border:1px solid var(–border);
+color:var(–muted);padding:3px 9px;border-radius:6px;
+font-size:11px;font-weight:700;letter-spacing:.4px;
 }
 
 #fileInput{display:none}
 
-/* ── File list ──────────────────────────── */
+/* ── File list ────────────────────────────── */
 .file-list{display:flex;flex-direction:column;gap:10px;margin-top:16px}
 
 .file-card {
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius-lg);padding:14px 16px;
-  display:flex;align-items:center;gap:13px;
-  animation:fadeUp .3s ease both;
-  transition:border-color .2s;
+background:var(–surface);border:1px solid var(–border);
+border-radius:var(–radius-lg);padding:14px 16px;
+display:flex;align-items:center;gap:13px;
+animation:fadeUp .3s ease both;
+transition:border-color .2s;
 }
-.file-card:hover{border-color:var(--border2)}
+.file-card:hover{border-color:var(–border2)}
 
 @keyframes fadeUp{
-  from{opacity:0;transform:translateY(8px)}
-  to{opacity:1;transform:translateY(0)}
+from{opacity:0;transform:translateY(8px)}
+to{opacity:1;transform:translateY(0)}
 }
 
 .file-type-icon {
-  width:44px;height:44px;flex-shrink:0;
-  border-radius:12px;
-  display:flex;align-items:center;justify-content:center;font-size:22px;
+width:44px;height:44px;flex-shrink:0;
+border-radius:12px;
+display:flex;align-items:center;justify-content:center;font-size:22px;
 }
-
 .file-meta{flex:1;min-width:0}
 .file-name{
-  font-size:14px;font-weight:600;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  margin-bottom:3px;
+font-size:14px;font-weight:600;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+margin-bottom:3px;
 }
-.file-size-row{
-  display:flex;align-items:center;gap:8px;
-}
-.file-size{font-size:12px;color:var(--muted)}
+.file-size{font-size:12px;color:var(–muted)}
 
-/* Progress */
 .file-progress {
-  margin-top:6px;
-  background:var(--raised);border-radius:4px;height:3px;overflow:hidden;display:none;
+margin-top:6px;
+background:var(–raised);border-radius:4px;height:3px;overflow:hidden;display:none;
 }
 .file-progress-bar {
-  height:100%;border-radius:4px;
-  background:linear-gradient(90deg,var(--accent),var(--accent2));
-  width:0%;transition:width .3s ease;
+height:100%;border-radius:4px;
+background:linear-gradient(90deg,var(–accent),var(–accent2));
+width:0%;transition:width .2s ease;
 }
 
 .badge {
-  font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;
-  white-space:nowrap;letter-spacing:.3px;
+font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;
+white-space:nowrap;letter-spacing:.3px;
 }
-.badge-wait{background:var(--raised);color:var(--muted);border:1px solid var(--border)}
-.badge-proc{background:var(--accentbg);color:var(--accent2);border:1px solid var(--accentbd)}
-.badge-done{background:var(--greenbg);color:var(--green);border:1px solid rgba(34,197,94,.25)}
-.badge-err {background:var(--redbg);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+.badge-wait{background:var(–raised);color:var(–muted);border:1px solid var(–border)}
+.badge-proc{background:var(–accentbg);color:var(–accent2);border:1px solid var(–accentbd)}
+.badge-done{background:var(–greenbg);color:var(–green);border:1px solid rgba(34,197,94,.25)}
+.badge-err {background:var(–redbg);color:var(–red);border:1px solid rgba(239,68,68,.25)}
 
 .dl-btn {
-  display:inline-flex;align-items:center;gap:5px;
-  background:var(--greenbg);color:var(--green);
-  border:1px solid rgba(34,197,94,.25);
-  padding:6px 12px;border-radius:8px;
-  font-size:12px;font-weight:700;cursor:pointer;
-  transition:all .2s;white-space:nowrap;
+display:inline-flex;align-items:center;gap:5px;
+background:var(–greenbg);color:var(–green);
+border:1px solid rgba(34,197,94,.25);
+padding:6px 12px;border-radius:8px;
+font-size:12px;font-weight:700;cursor:pointer;
+transition:all .2s;white-space:nowrap;
+font-family:‘Instrument Sans’,sans-serif;
 }
 .dl-btn:hover{background:rgba(34,197,94,.2);transform:translateY(-1px)}
 
 .btn-rm {
-  background:none;border:none;cursor:pointer;
-  color:var(--muted);font-size:16px;padding:6px;
-  border-radius:8px;transition:all .15s;flex-shrink:0;
+background:none;border:none;cursor:pointer;
+color:var(–muted);font-size:16px;padding:6px;
+border-radius:8px;transition:all .15s;flex-shrink:0;
 }
-.btn-rm:hover{color:var(--red);background:var(--redbg)}
+.btn-rm:hover{color:var(–red);background:var(–redbg)}
 
-/* Action bar */
 .action-bar {
-  display:flex;gap:10px;margin-top:14px;
-  animation:fadeUp .3s ease both;
+display:flex;gap:10px;margin-top:14px;
+animation:fadeUp .3s ease both;
 }
 .action-bar .btn{flex:1}
 
-/* ════════════════════════════════════════════
-   AUTH PAGE
-════════════════════════════════════════════ */
-.auth-wrap {
-  min-height:100vh;
-  display:flex;align-items:center;justify-content:center;
-  padding:40px 20px;
-  position:relative;z-index:1;
-}
-
-.auth-card {
-  width:100%;max-width:420px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius-xl);
-  padding:40px 36px;
-  box-shadow:var(--shadow-lg);
-  animation:fadeUp .4s ease;
-}
-
-.auth-brand {
-  display:flex;flex-direction:column;align-items:center;
-  margin-bottom:28px;gap:8px;
-}
-.auth-brand .logo{font-size:22px}
-.auth-brand p{color:var(--muted);font-size:14px}
-
-.tab-switcher {
-  display:flex;background:var(--raised);
-  border-radius:12px;padding:4px;margin-bottom:24px;
-}
-.tab-btn {
-  flex:1;padding:9px;border:none;background:transparent;
-  font-family:'Instrument Sans',sans-serif;font-size:14px;font-weight:500;
-  color:var(--muted);cursor:pointer;border-radius:10px;transition:all .2s;
-}
-.tab-btn.active{background:var(--surface);color:var(--text);font-weight:700;box-shadow:var(--shadow)}
-
-.form-field{margin-bottom:16px}
-.form-field label{
-  display:block;font-size:12px;font-weight:700;color:var(--subtle);
-  margin-bottom:7px;letter-spacing:.4px;text-transform:uppercase;
-}
-.form-field input {
-  width:100%;padding:12px 15px;
-  background:var(--raised);border:1px solid var(--border);border-radius:var(--radius);
-  color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:15px;
-  transition:border-color .2s;outline:none;
-}
-.form-field input::placeholder{color:var(--muted)}
-.form-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,107,53,.1)}
-
-.btn-block{width:100%;padding:13px;font-size:15px;border-radius:var(--radius)}
-
-.or-divider{
-  display:flex;align-items:center;gap:12px;
-  color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.4px;
-  margin:20px 0;text-transform:uppercase;
-}
-.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--border)}
-
-.social-list{display:flex;flex-direction:column;gap:8px}
-.social-btn {
-  width:100%;padding:11px 16px;
-  background:var(--raised);border:1px solid var(--border);border-radius:var(--radius);
-  color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:14px;font-weight:500;
-  cursor:pointer;display:flex;align-items:center;gap:12px;
-  transition:all .15s;text-align:left;
-}
-.social-btn:hover{border-color:var(--border2);background:rgba(255,255,255,0.04)}
-
-.social-icon{width:20px;height:20px;border-radius:4px;flex-shrink:0}
-
-.auth-footer{
-  text-align:center;margin-top:20px;
-  font-size:13px;color:var(--muted);
-}
-.auth-footer span{color:var(--accent);cursor:pointer;font-weight:600}
-.auth-footer span:hover{text-decoration:underline}
-
-/* ════════════════════════════════════════════
-   DASHBOARD
-════════════════════════════════════════════ */
-.user-btn {
-  display:flex;align-items:center;gap:9px;
-  background:var(--raised);border:1px solid var(--border);
-  border-radius:100px;padding:5px 12px 5px 6px;
-  cursor:pointer;transition:all .2s;position:relative;
-}
-.user-btn:hover{border-color:var(--border2)}
-
-.avatar {
-  width:28px;height:28px;border-radius:50%;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Cabinet Grotesk',sans-serif;font-weight:800;font-size:13px;color:white;
-}
-
-.user-name{font-size:13px;font-weight:600;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-
-.dropdown {
-  position:absolute;top:calc(100% + 8px);right:0;
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius-lg);padding:6px;min-width:200px;
-  box-shadow:var(--shadow-lg);
-  opacity:0;transform:translateY(-8px) scale(.97);
-  pointer-events:none;transition:all .2s;z-index:300;
-}
-.dropdown.open{opacity:1;transform:none;pointer-events:all}
-
-.dd-item {
-  display:flex;align-items:center;gap:10px;
-  padding:9px 12px;border-radius:10px;
-  font-size:14px;color:var(--subtle);cursor:pointer;
-  transition:all .15s;border:none;background:none;width:100%;text-align:left;
-  font-family:'Instrument Sans',sans-serif;
-}
-.dd-item:hover{background:var(--raised);color:var(--text)}
-.dd-item.red{color:var(--red)}
-.dd-item.red:hover{background:var(--redbg)}
-.dd-sep{height:1px;background:var(--border);margin:4px 6px}
-
-/* History table */
-.history-section{
-  max-width:780px;margin:0 auto;padding:0 20px 80px;
-}
-.section-header{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:16px;
-}
-.section-header h3{font-size:18px;font-weight:700}
-
-.history-empty{
-  text-align:center;padding:48px 20px;
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius-xl);color:var(--muted);
-}
-.history-empty .icon{font-size:40px;margin-bottom:12px}
-
-.history-grid{display:flex;flex-direction:column;gap:8px}
-
-.hist-row {
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);padding:12px 16px;
-  display:flex;align-items:center;gap:12px;
-  transition:border-color .2s;
-}
-.hist-row:hover{border-color:var(--border2)}
-.hist-name{flex:1;font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hist-date{font-size:12px;color:var(--muted);white-space:nowrap}
-
-/* ════════════════════════════════════════════
-   MODAL
-════════════════════════════════════════════ */
-.modal-bg {
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.7);backdrop-filter:blur(8px);
-  z-index:500;display:none;align-items:center;justify-content:center;padding:20px;
-}
-.modal-bg.open{display:flex}
-
-.modal {
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius-xl);padding:36px;
-  max-width:440px;width:100%;box-shadow:var(--shadow-lg);
-  animation:fadeUp .3s ease;
-}
-.modal h3{font-size:20px;margin-bottom:10px}
-.modal p{color:var(--muted);font-size:15px;line-height:1.6;margin-bottom:24px}
-.modal-actions{display:flex;gap:10px}
-.modal-actions .btn{flex:1}
-
-/* ════════════════════════════════════════════
-   TOAST
-════════════════════════════════════════════ */
-.toast {
-  position:fixed;bottom:28px;left:50%;
-  transform:translateX(-50%) translateY(12px);
-  background:var(--raised);border:1px solid var(--border2);
-  color:var(--text);padding:12px 20px;border-radius:100px;
-  font-size:14px;font-weight:500;
-  opacity:0;transition:all .3s;z-index:999;pointer-events:none;
-  box-shadow:var(--shadow);
-  display:flex;align-items:center;gap:8px;white-space:nowrap;
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.success{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);color:var(--green)}
-.toast.error{background:var(--redbg);border-color:rgba(239,68,68,.3);color:var(--red)}
-
-/* ════════════════════════════════════════════
-   FEATURES STRIP
-════════════════════════════════════════════ */
+/* ── FEATURES STRIP ───────────────────────── */
 .features-strip {
-  border-top:1px solid var(--border);
-  background:var(--surface);
-  padding:48px 20px;
+border-top:1px solid var(–border);
+background:var(–surface);
+padding:48px 20px;
 }
 .features-grid {
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:1px;background:var(--border);
-  max-width:800px;margin:0 auto;border-radius:var(--radius-xl);overflow:hidden;
+display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:1px;background:var(–border);
+max-width:800px;margin:0 auto;border-radius:var(–radius-xl);overflow:hidden;
 }
 .feat {
-  background:var(--surface);padding:28px 24px;
+background:var(–surface);padding:28px 24px;
 }
 .feat-icon{font-size:28px;margin-bottom:12px}
 .feat h4{font-size:15px;font-weight:700;margin-bottom:6px}
-.feat p{font-size:13px;color:var(--muted);line-height:1.55}
+.feat p{font-size:13px;color:var(–muted);line-height:1.55}
 
-/* ════════════════════════════════════════════
-   FOOTER
-════════════════════════════════════════════ */
-footer {
-  border-top:1px solid var(--border);
-  padding:24px 32px;
-  display:flex;align-items:center;justify-content:space-between;
-  flex-wrap:wrap;gap:12px;
-  position:relative;z-index:1;
+/* ── LEGAL PAGES ──────────────────────────── */
+.legal-wrap {
+max-width:760px;margin:0 auto;
+padding:60px 24px 80px;
+position:relative;z-index:1;
 }
-footer p{font-size:13px;color:var(--muted)}
-footer a{color:var(--muted);transition:color .2s}
-footer a:hover{color:var(--text);text-decoration:none}
-.footer-links{display:flex;gap:20px}
+.legal-wrap h2{
+font-size:32px;font-weight:800;letter-spacing:-1px;
+margin-bottom:6px;
+}
+.legal-wrap .legal-subtitle{
+color:var(–muted);font-size:14px;margin-bottom:40px;
+padding-bottom:20px;border-bottom:1px solid var(–border);
+}
+.legal-wrap h3{
+font-size:18px;font-weight:700;
+margin:32px 0 12px;color:var(–accent2);
+}
+.legal-wrap h4{
+font-size:15px;font-weight:700;
+margin:20px 0 8px;color:var(–subtle);
+}
+.legal-wrap p{
+font-size:14px;color:var(–subtle);line-height:1.8;
+margin-bottom:12px;
+}
+.legal-wrap ul{
+padding-left:20px;margin-bottom:12px;
+}
+.legal-wrap li{
+font-size:14px;color:var(–subtle);line-height:1.8;
+margin-bottom:4px;
+}
+.legal-wrap a{color:var(–accent)}
+.legal-box {
+background:var(–surface);border:1px solid var(–border);
+border-radius:var(–radius-lg);padding:20px 24px;
+margin:16px 0;
+}
+.legal-back {
+display:inline-flex;align-items:center;gap:8px;
+color:var(–muted);font-size:14px;font-weight:500;
+cursor:pointer;margin-bottom:32px;
+background:var(–surface);border:1px solid var(–border);
+padding:8px 16px;border-radius:100px;
+transition:all .2s;
+}
+.legal-back:hover{color:var(–text);border-color:var(–border2)}
 
-/* ════════════════════════════════════════════
-   SPINNER
-════════════════════════════════════════════ */
+/* ── FOOTER ───────────────────────────────── */
+footer {
+border-top:1px solid var(–border);
+padding:24px 32px;
+display:flex;align-items:center;justify-content:space-between;
+flex-wrap:wrap;gap:12px;
+position:relative;z-index:1;
+}
+footer p{font-size:13px;color:var(–muted)}
+footer a{color:var(–muted);transition:color .2s;font-size:13px}
+footer a:hover{color:var(–text);text-decoration:none}
+.footer-links{display:flex;gap:20px;flex-wrap:wrap}
+
+/* ── TOAST ────────────────────────────────── */
+.toast {
+position:fixed;bottom:28px;left:50%;
+transform:translateX(-50%) translateY(12px);
+background:var(–raised);border:1px solid var(–border2);
+color:var(–text);padding:12px 20px;border-radius:100px;
+font-size:14px;font-weight:500;
+opacity:0;transition:all .3s;z-index:999;pointer-events:none;
+box-shadow:var(–shadow);
+display:flex;align-items:center;gap:8px;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);color:var(–green)}
+.toast.error{background:var(–redbg);border-color:rgba(239,68,68,.3);color:var(–red)}
+
+/* ── SPINNER ──────────────────────────────── */
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{
-  width:16px;height:16px;border:2px solid transparent;
-  border-top-color:currentColor;border-radius:50%;
-  animation:spin .7s linear infinite;flex-shrink:0;
+width:16px;height:16px;border:2px solid transparent;
+border-top-color:currentColor;border-radius:50%;
+animation:spin .7s linear infinite;flex-shrink:0;
 }
 
-/* ════════════════════════════════════════════
-   RESPONSIVE
-════════════════════════════════════════════ */
+/* ── RESPONSIVE ───────────────────────────── */
 @media(max-width:600px){
-  nav{padding:12px 16px}
-  .nav-center{display:none}
-  .hero{padding:60px 16px 48px}
-  .auth-card{padding:28px 20px}
-  footer{flex-direction:column;text-align:center}
-  .action-bar{flex-direction:column}
+nav{padding:12px 16px}
+.nav-links{display:none}
+.hero{padding:56px 16px 40px}
+footer{flex-direction:column;text-align:center}
+.action-bar{flex-direction:column}
+.legal-wrap{padding:40px 16px 60px}
 }
 </style>
+
 </head>
 <body>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- MODAL connexion requise -->
-<div class="modal-bg" id="loginModal">
-  <div class="modal">
-    <h3>🔐 Connexion requise</h3>
-    <p>Créez un compte gratuit pour convertir et télécharger vos fichiers en PDF.</p>
-    <div class="modal-actions">
-      <button class="btn btn-primary btn-lg" onclick="goAuth('login')">Se connecter</button>
-      <button class="btn btn-ghost btn-lg" onclick="closeModal('loginModal')">Annuler</button>
-    </div>
-  </div>
-</div>
-
 <!-- ══════════════════════════════════════════
-  PAGE HOME
+PAGE HOME
 ══════════════════════════════════════════ -->
+
 <div class="page active" id="p-home">
-  <nav>
-    <a class="logo" onclick="goHome()">
-      <div class="logo-mark">📄</div>
-      Easy<em>PDF</em>
-    </a>
-    <div class="nav-right" id="nav-guest">
-      <button class="btn btn-ghost btn-sm" onclick="goAuth('login')">Connexion</button>
-      <button class="btn btn-primary btn-sm" onclick="goAuth('register')">Inscription gratuite</button>
-    </div>
-    <div class="nav-right" id="nav-user" style="display:none">
-      <div class="user-btn" onclick="toggleDD()">
-        <div class="avatar" id="av1">U</div>
-        <span class="user-name" id="uname1">Utilisateur</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-        <div class="dropdown" id="dd1">
-          <button class="dd-item" onclick="goPage('p-dash');closeDD()">
-            <span>📂</span> Mes conversions
-          </button>
-          <button class="dd-item" onclick="showProfile();closeDD()">
-            <span>👤</span> Profil
-          </button>
-          <div class="dd-sep"></div>
-          <button class="dd-item red" onclick="logout()">
-            <span>🚪</span> Déconnexion
-          </button>
-        </div>
-      </div>
-    </div>
-  </nav>
+<nav>
+<a class="logo" onclick="goPage('p-home')">
+<div class="logo-mark">📄</div>
+Easy<em>PDF</em>
+</a>
+<div class="nav-links">
+<button class="nav-pill active" onclick="goPage('p-home')">Convertir</button>
+<button class="nav-pill" onclick="goPage('p-privacy')">Confidentialité</button>
+<button class="nav-pill" onclick="goPage('p-cgu')">CGU</button>
+<button class="nav-pill" onclick="goPage('p-mentions')">Mentions légales</button>
+</div>
+</nav>
 
-  <section class="hero">
-    <div class="hero-eyebrow">✦ Conversion instantanée</div>
-    <h1>Vos fichiers en <span class="accent">PDF</span><br>en quelques secondes</h1>
-    <p>Glissez vos images ou documents. Téléchargez votre PDF directement sur votre téléphone ou ordinateur.</p>
-    <div class="student-badge">🎓 Projet étudiant open source — apprentissage web full-stack</div>
-  </section>
+<section class="hero">
+<div class="hero-eyebrow">✦ 100% local — aucun upload</div>
+<h1>Vos fichiers en <span class="accent">PDF</span><br>en quelques secondes</h1>
+<p>Glissez vos images, téléchargez votre PDF immédiatement. Tout se passe dans votre navigateur — aucune donnée n'est envoyée sur un serveur.</p>
+<div class="student-badge">🎓 Projet étudiant BTS SIO — open source</div>
+</section>
 
-  <div class="converter-wrap">
-    <div class="drop-zone" id="dz1" onclick="document.getElementById('fileInput').click()">
-      <div class="drop-icon-ring">📂</div>
-      <h3>Déposez vos fichiers ici</h3>
-      <p>ou cliquez pour choisir — images, documents, HTML, texte</p>
-      <div class="format-chips">
-        <span class="chip">JPG</span><span class="chip">PNG</span><span class="chip">WEBP</span>
-        <span class="chip">GIF</span><span class="chip">BMP</span><span class="chip">SVG</span>
-        <span class="chip">TIFF</span><span class="chip">DOCX</span><span class="chip">TXT</span>
-        <span class="chip">HTML</span>
-      </div>
-    </div>
-    <input type="file" id="fileInput" multiple accept="image/*,.doc,.docx,.txt,.html,.htm,.svg">
+<div class="converter-wrap">
+<div class="drop-zone" id="dz1" onclick="document.getElementById('fileInput').click()">
+<div class="drop-icon-ring">📂</div>
+<h3>Déposez vos images ici</h3>
+<p>ou cliquez pour choisir — conversion instantanée dans le navigateur</p>
+<div class="format-chips">
+<span class="chip">JPG</span><span class="chip">PNG</span><span class="chip">WEBP</span>
+<span class="chip">GIF</span><span class="chip">BMP</span><span class="chip">SVG</span>
+<span class="chip">TIFF</span>
+</div>
+</div>
+<input type="file" id="fileInput" multiple accept="image/*">
 
-    <div class="file-list" id="fl1"></div>
-    <div id="ab1" style="display:none" class="action-bar">
-      <button class="btn btn-primary btn-lg" onclick="startConvert(1)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M2 12l10-10 10 10"/></svg>
-        Convertir en PDF
-      </button>
-      <button class="btn btn-ghost" onclick="clearFiles(1)">Tout effacer</button>
-    </div>
-  </div>
+```
+<div class="file-list" id="fl1"></div>
+<div id="ab1" style="display:none" class="action-bar">
+<button class="btn btn-primary btn-lg" onclick="startConvert()">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M2 12l10-10 10 10"/></svg>
+Convertir en PDF
+</button>
+<button class="btn btn-ghost" onclick="clearFiles()">Tout effacer</button>
+</div>
+```
 
-  <section class="features-strip">
-    <div class="features-grid">
-      <div class="feat">
-        <div class="feat-icon">📱</div>
-        <h4>Mobile-first</h4>
-        <p>Téléchargez directement depuis votre iPhone ou Android, sans lien externe.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-icon">⚡</div>
-        <h4>Conversion rapide</h4>
-        <p>Puppeteer génère un PDF haute qualité côté serveur en quelques secondes.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-icon">🔒</div>
-        <h4>Sécurisé</h4>
-        <p>Fichiers supprimés après conversion. Authentification JWT. HTTPS.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-icon">🎓</div>
-        <h4>Open source</h4>
-        <p>Projet étudiant Node.js + Express + Prisma. Code accessible sur GitHub.</p>
-      </div>
-    </div>
-  </section>
+</div>
 
-  <footer>
-    <p>© 2025 Easy PDF — Projet étudiant</p>
-    <div class="footer-links">
-      <a href="#">Confidentialité</a>
-      <a href="#">CGU</a>
-      <a href="https://github.com" target="_blank">GitHub</a>
-    </div>
-  </footer>
+<section class="features-strip">
+<div class="features-grid">
+<div class="feat">
+<div class="feat-icon">📱</div>
+<h4>Mobile-first</h4>
+<p>Téléchargez directement depuis votre iPhone ou Android, sans compte requis.</p>
+</div>
+<div class="feat">
+<div class="feat-icon">⚡</div>
+<h4>Instantané</h4>
+<p>La conversion se fait entièrement dans votre navigateur, sans attente ni upload.</p>
+</div>
+<div class="feat">
+<div class="feat-icon">🔒</div>
+<h4>Privé par défaut</h4>
+<p>Vos fichiers ne quittent jamais votre appareil. Zéro donnée envoyée à un serveur.</p>
+</div>
+<div class="feat">
+<div class="feat-icon">🎓</div>
+<h4>Open source</h4>
+<p>Projet BTS SIO — code accessible et transparent.</p>
+</div>
+</div>
+</section>
+
+<footer>
+<p>© 2025 Easy PDF — Enzo, étudiant BTS SIO</p>
+<div class="footer-links">
+<a onclick="goPage('p-privacy');return false;" href="#">Politique de confidentialité</a>
+<a onclick="goPage('p-cgu');return false;" href="#">CGU</a>
+<a onclick="goPage('p-mentions');return false;" href="#">Mentions légales</a>
+</div>
+</footer>
 </div>
 
 <!-- ══════════════════════════════════════════
-  PAGE AUTH
+PAGE MENTIONS LÉGALES
 ══════════════════════════════════════════ -->
-<div class="page" id="p-auth">
-  <div class="auth-wrap">
-    <div class="auth-card">
-      <div class="auth-brand">
-        <div class="logo">
-          <div class="logo-mark">📄</div>
-          Easy<em style="font-style:normal;color:var(--accent)">PDF</em>
-        </div>
-        <p id="auth-sub">Bon retour 👋</p>
-      </div>
 
-      <div class="tab-switcher">
-        <button class="tab-btn active" id="t-login" onclick="switchTab('login')">Connexion</button>
-        <button class="tab-btn" id="t-reg" onclick="switchTab('register')">Inscription</button>
-      </div>
+<div class="page" id="p-mentions">
+<nav>
+<a class="logo" onclick="goPage('p-home')">
+<div class="logo-mark">📄</div>
+Easy<em>PDF</em>
+</a>
+<div class="nav-links">
+<button class="nav-pill" onclick="goPage('p-home')">Convertir</button>
+<button class="nav-pill" onclick="goPage('p-privacy')">Confidentialité</button>
+<button class="nav-pill" onclick="goPage('p-cgu')">CGU</button>
+<button class="nav-pill active" onclick="goPage('p-mentions')">Mentions légales</button>
+</div>
+</nav>
 
-      <!-- Login -->
-      <div id="f-login">
-        <div class="form-field">
-          <label>Email</label>
-          <input type="email" id="l-email" placeholder="vous@exemple.com" autocomplete="email">
-        </div>
-        <div class="form-field">
-          <label>Mot de passe</label>
-          <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <button class="btn btn-primary btn-block" id="btn-login" onclick="doLogin()">
-          Se connecter →
-        </button>
-      </div>
+<div class="legal-wrap">
+<button class="legal-back" onclick="goPage('p-home')">← Retour</button>
+<h2>Mentions légales</h2>
+<p class="legal-subtitle">Conformément à l'article 6 de la loi n°2004-575 du 21 juin 2004 pour la Confiance dans l'Économie Numérique (LCEN)</p>
 
-      <!-- Register -->
-      <div id="f-reg" style="display:none">
-        <div class="form-field">
-          <label>Nom d'utilisateur</label>
-          <input type="text" id="r-user" placeholder="Votre pseudo" autocomplete="username">
-        </div>
-        <div class="form-field">
-          <label>Email</label>
-          <input type="email" id="r-email" placeholder="vous@exemple.com" autocomplete="email">
-        </div>
-        <div class="form-field">
-          <label>Mot de passe</label>
-          <input type="password" id="r-pass" placeholder="Min. 8 caractères" autocomplete="new-password">
-        </div>
-        <button class="btn btn-primary btn-block" id="btn-reg" onclick="doRegister()">
-          Créer mon compte →
-        </button>
-      </div>
+```
+<h3>1. Éditeur du site</h3>
+<div class="legal-box">
+<p><strong>Nom :</strong> Enzo (étudiant en BTS SIO)</p>
+<p><strong>Qualité :</strong> Particulier — projet étudiant à but pédagogique, non commercial</p>
+<p><strong>Email de contact :</strong> <a href="mailto:enzo.ebend@gmail.com">enzo.ebend@gmail.com</a></p>
+<p style="margin-bottom:0"><strong>Statut :</strong> Projet open source sans activité commerciale</p>
+</div>
 
-      <div class="or-divider">ou</div>
+<h3>2. Hébergement du frontend (interface)</h3>
+<div class="legal-box">
+<p><strong>Prestataire :</strong> Vercel Inc.</p>
+<p><strong>Adresse :</strong> 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis</p>
+<p><strong>Site web :</strong> <a href="https://vercel.com" target="_blank">vercel.com</a></p>
+<p style="margin-bottom:0"><strong>Note :</strong> La conversion des fichiers s'effectue entièrement dans le navigateur de l'utilisateur (technologie <em>client-side</em>). Aucun fichier n'est transmis aux serveurs de Vercel ou d'un quelconque tiers.</p>
+</div>
 
-      <div class="social-list">
-        <button class="social-btn" onclick="socialOAuth('Google')">
-          <svg class="social-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          Continuer avec Google
-        </button>
-        <button class="social-btn" onclick="socialOAuth('Apple')">
-          <svg class="social-icon" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-          Continuer avec Apple
-        </button>
-        <button class="social-btn" onclick="socialOAuth('Facebook')">
-          <svg class="social-icon" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-          Continuer avec Facebook
-        </button>
-      </div>
+<h3>3. Propriété intellectuelle</h3>
+<p>Le code source de ce projet est publié sous licence open source. Les bibliothèques tierces utilisées (jsPDF) sont soumises à leurs propres licences (MIT). La structure et le design du site sont la propriété de l'éditeur.</p>
 
-      <div class="auth-footer">
-        <span id="auth-switch-text">Pas de compte ? <span onclick="switchTab('register')">S'inscrire gratuitement</span></span>
-      </div>
-    </div>
-  </div>
+<h3>4. Responsabilité</h3>
+<p>Ce site est un projet étudiant à vocation pédagogique. L'éditeur s'efforce d'assurer la disponibilité et le bon fonctionnement du service, mais ne peut être tenu responsable en cas d'interruption, d'erreur de conversion, ou de perte de données.</p>
+<p>Les conversions sont réalisées localement dans le navigateur de l'utilisateur. L'éditeur n'a aucun accès aux fichiers traités.</p>
+
+<h3>5. Droit applicable</h3>
+<p>Le présent site est soumis au droit français. En cas de litige, les tribunaux français seront seuls compétents. Pour les utilisateurs résidant dans l'Union européenne, les dispositions du RGPD (Règlement UE 2016/679) s'appliquent.</p>
+
+<h3>6. Médiation et résolution des litiges (UE)</h3>
+<p>Conformément à l'article 14 du Règlement (UE) n°524/2013, la Commission européenne a mis en place une plateforme de Règlement en Ligne des Litiges (RLL) accessible à : <a href="https://ec.europa.eu/consumers/odr" target="_blank">https://ec.europa.eu/consumers/odr</a>.</p>
+<p>Dans le cadre d'un projet étudiant non commercial, aucune transaction commerciale n'est réalisée sur ce site. En cas de difficulté, contactez directement l'éditeur à l'adresse email mentionnée ci-dessus.</p>
+
+<h3>7. Cookies</h3>
+<p>Ce site n'utilise aucun cookie de traçage, de publicité ou d'analyse. Aucune donnée de navigation n'est collectée. Le site ne dépose aucun cookie sur votre appareil.</p>
+```
+
+</div>
+
+<footer>
+<p>© 2025 Easy PDF — Enzo, étudiant BTS SIO</p>
+<div class="footer-links">
+<a onclick="goPage('p-privacy');return false;" href="#">Politique de confidentialité</a>
+<a onclick="goPage('p-cgu');return false;" href="#">CGU</a>
+<a onclick="goPage('p-mentions');return false;" href="#">Mentions légales</a>
+</div>
+</footer>
 </div>
 
 <!-- ══════════════════════════════════════════
-  PAGE DASHBOARD
+PAGE POLITIQUE DE CONFIDENTIALITÉ
 ══════════════════════════════════════════ -->
-<div class="page" id="p-dash">
-  <nav>
-    <a class="logo" onclick="goHome()">
-      <div class="logo-mark">📄</div>
-      Easy<em>PDF</em>
-    </a>
-    <div class="nav-center">
-      <button class="nav-pill active" onclick="goPage('p-dash')">Convertir</button>
-      <button class="nav-pill" onclick="loadHistory()">Historique</button>
-    </div>
-    <div class="nav-right">
-      <div class="user-btn" onclick="toggleDD2()">
-        <div class="avatar" id="av2">U</div>
-        <span class="user-name" id="uname2">Utilisateur</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-        <div class="dropdown" id="dd2">
-          <button class="dd-item" onclick="loadHistory();closeDD2()">
-            <span>📋</span> Historique
-          </button>
-          <div class="dd-sep"></div>
-          <button class="dd-item red" onclick="logout()">
-            <span>🚪</span> Déconnexion
-          </button>
-        </div>
-      </div>
-    </div>
-  </nav>
 
-  <!-- Convert section -->
-  <div id="dash-convert">
-    <section class="hero" style="padding-top:60px;padding-bottom:40px">
-      <div class="hero-eyebrow">✦ Connecté</div>
-      <h1>Bonjour, <span class="accent" id="welcome-name">!</span></h1>
-      <p>Déposez vos fichiers et téléchargez vos PDF directement sur votre appareil.</p>
-    </section>
+<div class="page" id="p-privacy">
+<nav>
+<a class="logo" onclick="goPage('p-home')">
+<div class="logo-mark">📄</div>
+Easy<em>PDF</em>
+</a>
+<div class="nav-links">
+<button class="nav-pill" onclick="goPage('p-home')">Convertir</button>
+<button class="nav-pill active" onclick="goPage('p-privacy')">Confidentialité</button>
+<button class="nav-pill" onclick="goPage('p-cgu')">CGU</button>
+<button class="nav-pill" onclick="goPage('p-mentions')">Mentions légales</button>
+</div>
+</nav>
 
-    <div class="converter-wrap">
-      <div class="drop-zone" id="dz2" onclick="document.getElementById('fi2').click()">
-        <div class="drop-icon-ring">📂</div>
-        <h3>Déposez vos fichiers ici</h3>
-        <p>Jusqu'à 20 fichiers — 50 MB max par fichier</p>
-        <div class="format-chips">
-          <span class="chip">JPG</span><span class="chip">PNG</span><span class="chip">WEBP</span>
-          <span class="chip">GIF</span><span class="chip">BMP</span><span class="chip">SVG</span>
-          <span class="chip">TIFF</span><span class="chip">DOCX</span><span class="chip">TXT</span>
-          <span class="chip">HTML</span>
-        </div>
-      </div>
-      <input type="file" id="fi2" multiple accept="image/*,.doc,.docx,.txt,.html,.htm,.svg">
+<div class="legal-wrap">
+<button class="legal-back" onclick="goPage('p-home')">← Retour</button>
+<h2>Politique de confidentialité</h2>
+<p class="legal-subtitle">Conformément au Règlement Général sur la Protection des Données (RGPD — Règlement UE 2016/679) et à la loi Informatique et Libertés du 6 janvier 1978 modifiée. Dernière mise à jour : juin 2025.</p>
 
-      <div class="file-list" id="fl2"></div>
-      <div id="ab2" style="display:none" class="action-bar">
-        <button class="btn btn-primary btn-lg" onclick="startConvert(2)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M2 12l10-10 10 10"/></svg>
-          Convertir en PDF
-        </button>
-        <button class="btn btn-ghost" onclick="clearFiles(2)">Tout effacer</button>
-      </div>
-    </div>
-  </div>
+```
+<h3>1. Responsable du traitement</h3>
+<div class="legal-box">
+<p><strong>Responsable :</strong> Enzo (étudiant BTS SIO)</p>
+<p><strong>Contact :</strong> <a href="mailto:enzo.ebend@gmail.com">enzo.ebend@gmail.com</a></p>
+<p style="margin-bottom:0"><strong>Base légale :</strong> Ce site est un projet étudiant non commercial. Le traitement des données est limité au minimum nécessaire au fonctionnement du service.</p>
+</div>
 
-  <!-- History section -->
-  <div id="dash-history" style="display:none">
-    <div style="padding:48px 20px 24px;max-width:780px;margin:0 auto">
-      <h2 style="font-size:28px;font-weight:800;margin-bottom:4px">Mes conversions</h2>
-      <p style="color:var(--muted);font-size:14px">Vos 50 dernières conversions</p>
-    </div>
-    <div class="history-section">
-      <div id="hist-content">
-        <div style="text-align:center;padding:40px;color:var(--muted)"><div class="spinner" style="margin:0 auto 12px"></div>Chargement...</div>
-      </div>
-    </div>
-  </div>
+<h3>2. Données collectées</h3>
+<p><strong>Aucune donnée personnelle n'est collectée</strong> lors de l'utilisation du convertisseur PDF.</p>
+<p>La conversion de vos fichiers s'effectue <strong>entièrement dans votre navigateur</strong> (technologie JavaScript côté client). Vos fichiers ne sont jamais transmis à un serveur, ne sont jamais stockés, et ne sont jamais consultés par l'éditeur ou un tiers.</p>
 
-  <footer>
-    <p>© 2025 Easy PDF — Projet étudiant</p>
-    <div class="footer-links">
-      <a href="#">Confidentialité</a>
-      <a href="#">CGU</a>
-    </div>
-  </footer>
+<h4>Ce que nous ne collectons PAS :</h4>
+<ul>
+<li>Le contenu de vos fichiers (images, documents)</li>
+<li>Votre adresse email ou toute information d'identification</li>
+<li>Votre adresse IP (aucune analytics)</li>
+<li>Votre comportement de navigation (aucun tracking)</li>
+<li>Des cookies de traçage ou publicitaires</li>
+</ul>
+
+<h4>Données techniques minimales :</h4>
+<p>Votre navigateur peut échanger des données techniques standards avec les serveurs d'hébergement de Vercel (ex. : adresse IP, user-agent) dans le cadre de la simple consultation d'une page web. Ces échanges sont inhérents à tout protocole HTTP/HTTPS et ne constituent pas un traitement de données personnelles de notre part. Pour en savoir plus sur la politique de Vercel : <a href="https://vercel.com/legal/privacy-policy" target="_blank">vercel.com/legal/privacy-policy</a>.</p>
+
+<h3>3. Finalité et base légale</h3>
+<p>Le seul traitement en jeu est la conversion de fichiers image en PDF, réalisé localement dans votre navigateur à votre demande. La base légale est l'<strong>exécution d'un service demandé par l'utilisateur</strong> (article 6.1.b du RGPD).</p>
+
+<h3>4. Durée de conservation</h3>
+<p>Vos fichiers ne sont jamais stockés. Toutes les données traitées lors de la conversion sont supprimées dès que vous fermez l'onglet ou rechargez la page. Aucune conservation persistante n'est effectuée.</p>
+
+<h3>5. Partage des données</h3>
+<p>Aucune donnée vous concernant n'est transmise, vendue, louée ou partagée avec un tiers, quelle que soit la raison.</p>
+
+<h3>6. Transferts hors UE</h3>
+<p>L'hébergement du frontend est assuré par Vercel Inc. (États-Unis). Vercel est soumis au cadre du Data Privacy Framework UE-États-Unis. La bibliothèque jsPDF est chargée depuis Cloudflare CDN (cdnjs.cloudflare.com), qui peut être hébergée hors UE. Aucune donnée personnelle n'est transmise lors de ce chargement.</p>
+
+<h3>7. Vos droits (RGPD)</h3>
+<p>Conformément au RGPD, vous disposez des droits suivants :</p>
+<ul>
+<li><strong>Droit d'accès</strong> (art. 15) : accéder aux données vous concernant</li>
+<li><strong>Droit de rectification</strong> (art. 16) : corriger des données inexactes</li>
+<li><strong>Droit à l'effacement</strong> (art. 17) : demander la suppression de vos données</li>
+<li><strong>Droit à la limitation</strong> (art. 18) : limiter le traitement</li>
+<li><strong>Droit à la portabilité</strong> (art. 20) : recevoir vos données dans un format structuré</li>
+<li><strong>Droit d'opposition</strong> (art. 21) : vous opposer à un traitement</li>
+</ul>
+<p>En pratique, aucune donnée personnelle n'étant collectée par ce service, ces droits s'exercent automatiquement. Pour toute question, contactez : <a href="mailto:enzo.ebend@gmail.com">enzo.ebend@gmail.com</a>.</p>
+
+<h3>8. Droit de réclamation</h3>
+<p>Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une réclamation auprès de la <strong>CNIL</strong> (Commission Nationale de l'Informatique et des Libertés) :</p>
+<div class="legal-box">
+<p><strong>CNIL</strong> — 3 Place de Fontenoy, TSA 80715, 75334 Paris Cedex 07</p>
+<p><strong>Site :</strong> <a href="https://www.cnil.fr" target="_blank">www.cnil.fr</a></p>
+<p style="margin-bottom:0"><strong>Téléphone :</strong> +33 (0)1 53 73 22 22</p>
+</div>
+
+<h3>9. Cookies et traceurs</h3>
+<p>Ce site n'utilise <strong>aucun cookie</strong> de traçage, d'analyse (Google Analytics, etc.), de publicité ou de réseaux sociaux. Aucun bandeau de consentement aux cookies n'est nécessaire car aucun cookie non essentiel n'est déposé.</p>
+
+<h3>10. Modifications</h3>
+<p>Cette politique peut être mise à jour. La date de dernière modification est indiquée en haut du document. En cas de modification substantielle, un avis sera publié sur la page d'accueil du site.</p>
+```
+
+</div>
+
+<footer>
+<p>© 2025 Easy PDF — Enzo, étudiant BTS SIO</p>
+<div class="footer-links">
+<a onclick="goPage('p-privacy');return false;" href="#">Politique de confidentialité</a>
+<a onclick="goPage('p-cgu');return false;" href="#">CGU</a>
+<a onclick="goPage('p-mentions');return false;" href="#">Mentions légales</a>
+</div>
+</footer>
+</div>
+
+<!-- ══════════════════════════════════════════
+PAGE CGU
+══════════════════════════════════════════ -->
+
+<div class="page" id="p-cgu">
+<nav>
+<a class="logo" onclick="goPage('p-home')">
+<div class="logo-mark">📄</div>
+Easy<em>PDF</em>
+</a>
+<div class="nav-links">
+<button class="nav-pill" onclick="goPage('p-home')">Convertir</button>
+<button class="nav-pill" onclick="goPage('p-privacy')">Confidentialité</button>
+<button class="nav-pill active" onclick="goPage('p-cgu')">CGU</button>
+<button class="nav-pill" onclick="goPage('p-mentions')">Mentions légales</button>
+</div>
+</nav>
+
+<div class="legal-wrap">
+<button class="legal-back" onclick="goPage('p-home')">← Retour</button>
+<h2>Conditions Générales d'Utilisation</h2>
+<p class="legal-subtitle">Dernière mise à jour : juin 2025. L'utilisation du service Easy PDF implique l'acceptation des présentes CGU.</p>
+
+```
+<h3>1. Présentation du service</h3>
+<p>Easy PDF est un outil de conversion d'images en fichiers PDF fonctionnant entièrement dans le navigateur web de l'utilisateur. Il est développé et maintenu par Enzo, étudiant en BTS SIO, à titre pédagogique et non commercial. Le service est gratuit et accessible sans création de compte.</p>
+
+<h3>2. Accès au service</h3>
+<p>Le service est accessible librement, sans inscription ni authentification. L'éditeur se réserve le droit de modifier, suspendre ou interrompre l'accès au service à tout moment, notamment pour des raisons de maintenance ou d'évolution technique, sans préavis ni compensation.</p>
+
+<h3>3. Utilisation du service</h3>
+<p>L'utilisateur s'engage à utiliser le service de manière licite et conforme aux présentes CGU. Il est notamment interdit de :</p>
+<ul>
+<li>Convertir des fichiers dont vous n'êtes pas l'auteur ou pour lesquels vous ne disposez pas des droits nécessaires</li>
+<li>Utiliser le service à des fins illicites, frauduleuses ou contraires à l'ordre public</li>
+<li>Tenter de contourner, perturber ou altérer le fonctionnement technique du service</li>
+<li>Reproduire, copier ou exploiter à des fins commerciales tout ou partie du service sans autorisation</li>
+</ul>
+
+<h3>4. Responsabilité de l'utilisateur</h3>
+<p>L'utilisateur est seul responsable des fichiers qu'il traite via le service et de l'usage qu'il fait des PDF générés. L'éditeur ne peut être tenu responsable du contenu des fichiers convertis ni de leur utilisation ultérieure.</p>
+
+<h3>5. Responsabilité de l'éditeur</h3>
+<p>Le service est fourni <strong>en l'état</strong> (<em>as is</em>), sans garantie de disponibilité continue, d'exactitude des conversions, ni d'adéquation à un usage particulier. L'éditeur ne pourra être tenu responsable :</p>
+<ul>
+<li>De la perte de fichiers lors du traitement</li>
+<li>D'une conversion imparfaite (qualité, mise en page)</li>
+<li>D'une interruption ou indisponibilité du service</li>
+<li>De dommages directs ou indirects résultant de l'utilisation du service</li>
+</ul>
+<p>La conversion étant entièrement locale, l'éditeur n'a aucun accès aux fichiers de l'utilisateur et ne peut en être tenu responsable.</p>
+
+<h3>6. Propriété intellectuelle</h3>
+<p>L'éditeur conserve tous les droits de propriété intellectuelle sur le code source, le design et le contenu du site. Le code est publié en open source selon les termes de la licence applicable (disponible sur GitHub). Les bibliothèques tierces (jsPDF) restent soumises à leurs propres licences.</p>
+<p>L'utilisateur conserve l'intégralité des droits sur ses fichiers sources et sur les PDF générés.</p>
+
+<h3>7. Droit applicable et juridiction compétente</h3>
+<p>Les présentes CGU sont soumises au droit français. Tout litige relatif à l'interprétation ou à l'exécution des présentes sera soumis à la compétence des tribunaux français. Pour les utilisateurs établis dans l'Union européenne, la réglementation européenne applicable s'applique également.</p>
+
+<h3>8. Résolution des litiges (UE)</h3>
+<p>Conformément à la Directive 2013/11/UE relative au règlement extrajudiciaire des litiges de consommation, et au Règlement (UE) n°524/2013 relatif au règlement en ligne des litiges, les utilisateurs peuvent recourir à la plateforme RLL de la Commission européenne : <a href="https://ec.europa.eu/consumers/odr" target="_blank">https://ec.europa.eu/consumers/odr</a>.</p>
+<p>Ce service étant gratuit et non commercial, tout désaccord peut d'abord être réglé à l'amiable en contactant l'éditeur à <a href="mailto:enzo.ebend@gmail.com">enzo.ebend@gmail.com</a>.</p>
+
+<h3>9. Modifications des CGU</h3>
+<p>L'éditeur se réserve le droit de modifier les présentes CGU à tout moment. Les modifications prennent effet dès leur publication sur le site. La date de dernière mise à jour est indiquée en haut du document. L'utilisation continue du service après modification vaut acceptation des nouvelles CGU.</p>
+
+<h3>10. Contact</h3>
+<p>Pour toute question relative aux présentes CGU : <a href="mailto:enzo.ebend@gmail.com">enzo.ebend@gmail.com</a></p>
+```
+
+</div>
+
+<footer>
+<p>© 2025 Easy PDF — Enzo, étudiant BTS SIO</p>
+<div class="footer-links">
+<a onclick="goPage('p-privacy');return false;" href="#">Politique de confidentialité</a>
+<a onclick="goPage('p-cgu');return false;" href="#">CGU</a>
+<a onclick="goPage('p-mentions');return false;" href="#">Mentions légales</a>
+</div>
+</footer>
 </div>
 
 <script>
 // ════════════════════════════════════════════
-// CONFIG
-// ════════════════════════════════════════════
-const API = 'https://easypdf-production-982f.up.railway.app/api';
-// ════════════════════════════════════════════
-// STATE
-// ════════════════════════════════════════════
-let token = localStorage.getItem('epdf_token');
-let user  = JSON.parse(localStorage.getItem('epdf_user') || 'null');
-let files1 = [], files2 = [];
-
-// ════════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════════
-(function init() {
-  if (token && user) setLoggedIn(user);
-})();
-
-// ════════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════════
 function goPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0,0);
-}
-
-function goHome() {
-  if (token) goPage('p-dash');
-  else goPage('p-home');
-}
-
-function goAuth(tab) {
-  closeModal('loginModal');
-  goPage('p-auth');
-  switchTab(tab);
+document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+window.scrollTo(0, 0);
 }
 
 // ════════════════════════════════════════════
-// AUTH TABS
+// STATE
 // ════════════════════════════════════════════
-function switchTab(tab) {
-  const isLogin = tab === 'login';
-  document.getElementById('t-login').classList.toggle('active', isLogin);
-  document.getElementById('t-reg').classList.toggle('active', !isLogin);
-  document.getElementById('f-login').style.display = isLogin ? 'block' : 'none';
-  document.getElementById('f-reg').style.display   = isLogin ? 'none'  : 'block';
-  document.getElementById('auth-sub').textContent  = isLogin ? 'Bon retour 👋' : 'Créer votre compte ✨';
-  document.getElementById('auth-switch-text').innerHTML = isLogin
-    ? 'Pas de compte ? <span onclick="switchTab(\'register\')">S\'inscrire gratuitement</span>'
-    : 'Déjà un compte ? <span onclick="switchTab(\'login\')">Se connecter</span>';
-}
+let files = []; // { id, file, status, blobUrl }
 
 // ════════════════════════════════════════════
-// AUTH API
-// ════════════════════════════════════════════
-async function doLogin() {
-  const email = document.getElementById('l-email').value.trim();
-  const pass  = document.getElementById('l-pass').value;
-  if (!email || !pass) { toast('Remplissez tous les champs','error'); return; }
-  setBtnLoading('btn-login', true);
-  try {
-    const data = await apiPost('/auth/login', { email, password: pass });
-    authSuccess(data);
-  } catch(e) { toast(e.message,'error'); } finally { setBtnLoading('btn-login', false); }
-}
-
-async function doRegister() {
-  const username = document.getElementById('r-user').value.trim();
-  const email    = document.getElementById('r-email').value.trim();
-  const pass     = document.getElementById('r-pass').value;
-  if (!username||!email||!pass) { toast('Remplissez tous les champs','error'); return; }
-  if (pass.length < 8) { toast('Mot de passe trop court (min. 8 car.)','error'); return; }
-  setBtnLoading('btn-reg', true);
-  try {
-    const data = await apiPost('/auth/register', { username, email, password: pass });
-    authSuccess(data);
-  } catch(e) { toast(e.message,'error'); } finally { setBtnLoading('btn-reg', false); }
-}
-
-async function socialOAuth(provider) {
-  // En prod: ouvrir popup OAuth, récupérer token, appeler /api/auth/oauth
-  // Simulation pour la démo:
-  toast(`Connexion ${provider} — intégrez le SDK OAuth en production`);
-  const fakeData = {
-    token: 'demo_token_' + Date.now(),
-    user: { id: 'demo', username: provider + '_User', email: 'demo@easypdf.fr' }
-  };
-  // Pour la démo uniquement (sans vrai backend):
-  authSuccess(fakeData, true);
-}
-
-function authSuccess(data, demo = false) {
-  token = data.token;
-  user  = data.user;
-  if (!demo) {
-    localStorage.setItem('epdf_token', token);
-    localStorage.setItem('epdf_user', JSON.stringify(user));
-  }
-  setLoggedIn(user);
-  goPage('p-dash');
-  toast('Bienvenue ' + user.username + ' !', 'success');
-}
-
-function setLoggedIn(u) {
-  const initial = u.username.charAt(0).toUpperCase();
-  ['av1','av2'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = initial; });
-  ['uname1','uname2'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = u.username; });
-  document.getElementById('welcome-name').textContent = u.username + ' 👋';
-  document.getElementById('nav-guest').style.display = 'none';
-  document.getElementById('nav-user').style.display  = 'flex';
-}
-
-function logout() {
-  token = null; user = null;
-  localStorage.removeItem('epdf_token');
-  localStorage.removeItem('epdf_user');
-  files1 = []; files2 = [];
-  document.getElementById('fl1').innerHTML = '';
-  document.getElementById('fl2').innerHTML = '';
-  document.getElementById('ab1').style.display = 'none';
-  document.getElementById('ab2').style.display = 'none';
-  document.getElementById('nav-guest').style.display = 'flex';
-  document.getElementById('nav-user').style.display  = 'none';
-  goPage('p-home');
-  toast('À bientôt !');
-  closeDD(); closeDD2();
-}
-
-// ════════════════════════════════════════════
-// DROPDOWNS
-// ════════════════════════════════════════════
-function toggleDD()  { document.getElementById('dd1').classList.toggle('open') }
-function closeDD()   { document.getElementById('dd1').classList.remove('open') }
-function toggleDD2() { document.getElementById('dd2').classList.toggle('open') }
-function closeDD2()  { document.getElementById('dd2').classList.remove('open') }
-document.addEventListener('click', e => {
-  if (!e.target.closest('.user-btn')) { closeDD(); closeDD2(); }
-});
-
-// ════════════════════════════════════════════
-// MODAL
-// ════════════════════════════════════════════
-function openModal(id)  { document.getElementById(id).classList.add('open') }
-function closeModal(id) { document.getElementById(id).classList.remove('open') }
-document.getElementById('loginModal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeModal('loginModal');
-});
-
-// ════════════════════════════════════════════
-// FILE HANDLING
+// FILE ICONS / COLORS
 // ════════════════════════════════════════════
 function fileIcon(name) {
-  const e = name.split('.').pop().toLowerCase();
-  const m = {jpg:'🖼️',jpeg:'🖼️',png:'🖼️',gif:'🎞️',webp:'🖼️',bmp:'🖼️',svg:'✏️',tiff:'📷',heic:'📷',
-             doc:'📝',docx:'📝',txt:'📄',html:'🌐',htm:'🌐'};
-  return m[e] || '📎';
+const ext = name.split('.').pop().toLowerCase();
+const map = {
+jpg:'🖼️', jpeg:'🖼️', png:'🖼️', gif:'🎞️', webp:'🖼️',
+bmp:'🖼️', svg:'✏️', tiff:'📷', heic:'📷'
+};
+return map[ext] || '🖼️';
 }
 function fileBg(name) {
-  const e = name.split('.').pop().toLowerCase();
-  if (['jpg','jpeg','png','gif','webp','bmp','tiff','heic'].includes(e)) return 'rgba(255,107,53,.1)';
-  if (e==='svg') return 'rgba(96,165,250,.1)';
-  if (['doc','docx'].includes(e)) return 'rgba(96,165,250,.1)';
-  if (e==='txt') return 'rgba(34,197,94,.1)';
-  if (['html','htm'].includes(e)) return 'rgba(251,191,36,.1)';
-  return 'var(--raised)';
+const ext = name.split('.').pop().toLowerCase();
+if (['jpg','jpeg','png','gif','webp','bmp','tiff','heic'].includes(ext)) return 'rgba(255,107,53,.1)';
+if (ext === 'svg') return 'rgba(96,165,250,.1)';
+return 'var(--raised)';
 }
 function fmtSize(b) {
-  if(b<1024) return b+'B';
-  if(b<1048576) return (b/1024).toFixed(1)+'KB';
-  return (b/1048576).toFixed(1)+'MB';
+if (b < 1024) return b + 'B';
+if (b < 1048576) return (b/1024).toFixed(1) + 'KB';
+return (b/1048576).toFixed(1) + 'MB';
 }
 
-function addFiles(rawFiles, slot) {
-  const arr = slot===1 ? files1 : files2;
-  const listId = 'fl'+slot, barId = 'ab'+slot;
-  Array.from(rawFiles).forEach(f => {
-    const id = crypto.randomUUID ? crypto.randomUUID() : Date.now()+Math.random();
-    arr.push({ id, file: f, status: 'waiting' });
-    renderCard(f, id, listId);
-  });
-  document.getElementById(barId).style.display = arr.length ? 'flex' : 'none';
+// ════════════════════════════════════════════
+// ADD FILES
+// ════════════════════════════════════════════
+function addFiles(rawFiles) {
+Array.from(rawFiles).forEach(f => {
+// Only images for client-side jsPDF
+if (!f.type.startsWith('image/')) {
+toast('Seules les images sont supportées (JPG, PNG, WEBP…)', 'error');
+return;
+}
+const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + Math.random().toString(36));
+files.push({ id, file: f, status: 'waiting', blobUrl: null });
+renderCard(f, id);
+});
+document.getElementById('ab1').style.display = files.length ? 'flex' : 'none';
 }
 
-function renderCard(f, id, listId) {
-  const el = document.createElement('div');
-  el.className = 'file-card';
-  el.id = 'fc_'+id;
-  el.innerHTML = `
-    <div class="file-type-icon" style="background:${fileBg(f.name)}">${fileIcon(f.name)}</div>
-    <div class="file-meta">
-      <div class="file-name">${f.name}</div>
-      <div class="file-size-row">
-        <span class="file-size">${fmtSize(f.size)}</span>
-      </div>
-      <div class="file-progress" id="fp_${id}"><div class="file-progress-bar" id="fpb_${id}"></div></div>
-    </div>
-    <span class="badge badge-wait" id="st_${id}">En attente</span>
-    <div id="dl_${id}"></div>
-    <button class="btn-rm" onclick="removeCard('${id}')" title="Supprimer">✕</button>`;
-  document.getElementById(listId).appendChild(el);
+function renderCard(f, id) {
+const el = document.createElement('div');
+el.className = 'file-card';
+el.id = 'fc_' + id;
+el.innerHTML = `
+<div class="file-type-icon" style="background:${fileBg(f.name)}">${fileIcon(f.name)}</div>
+<div class="file-meta">
+<div class="file-name">${f.name}</div>
+<div class="file-size">${fmtSize(f.size)}</div>
+<div class="file-progress" id="fp_${id}"><div class="file-progress-bar" id="fpb_${id}"></div></div>
+</div>
+<span class="badge badge-wait" id="st_${id}">En attente</span>
+<div id="dl_${id}"></div>
+<button class="btn-rm" onclick="removeCard('${id}')" title="Supprimer">✕</button>`;
+document.getElementById('fl1').appendChild(el);
 }
 
 function removeCard(id) {
-  const el = document.getElementById('fc_'+id);
-  if (!el) return;
-  el.style.opacity='0';el.style.transform='translateX(16px)';el.style.transition='all .2s';
-  setTimeout(()=>{
-    el.remove();
-    files1 = files1.filter(f=>f.id!=id);
-    files2 = files2.filter(f=>f.id!=id);
-    document.getElementById('ab1').style.display = files1.length ? 'flex':'none';
-    document.getElementById('ab2').style.display = files2.length ? 'flex':'none';
-  },200);
+const el = document.getElementById('fc_' + id);
+if (!el) return;
+el.style.opacity = '0';
+el.style.transform = 'translateX(16px)';
+el.style.transition = 'all .2s';
+setTimeout(() => {
+el.remove();
+// Revoke blob URL if exists
+const fObj = files.find(f => f.id === id);
+if (fObj && fObj.blobUrl) URL.revokeObjectURL(fObj.blobUrl);
+files = files.filter(f => f.id !== id);
+document.getElementById('ab1').style.display = files.length ? 'flex' : 'none';
+}, 200);
 }
 
-function clearFiles(slot) {
-  if (slot===1) { files1=[]; document.getElementById('fl1').innerHTML=''; document.getElementById('ab1').style.display='none'; }
-  else { files2=[]; document.getElementById('fl2').innerHTML=''; document.getElementById('ab2').style.display='none'; }
+function clearFiles() {
+files.forEach(f => { if (f.blobUrl) URL.revokeObjectURL(f.blobUrl); });
+files = [];
+document.getElementById('fl1').innerHTML = '';
+document.getElementById('ab1').style.display = 'none';
 }
 
-// Drag & drop
-['dz1','dz2'].forEach((dzId,i)=>{
-  const dz = document.getElementById(dzId);
-  if(!dz) return;
-  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
-  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
-  dz.addEventListener('drop',e=>{
-    e.preventDefault();dz.classList.remove('over');
-    addFiles(e.dataTransfer.files, i+1);
-  });
+// ════════════════════════════════════════════
+// DRAG & DROP
+// ════════════════════════════════════════════
+const dz = document.getElementById('dz1');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => {
+e.preventDefault(); dz.classList.remove('over');
+addFiles(e.dataTransfer.files);
 });
-
-document.getElementById('fileInput').addEventListener('change',e=>addFiles(e.target.files,1));
-document.getElementById('fi2').addEventListener('change',e=>addFiles(e.target.files,2));
+document.getElementById('fileInput').addEventListener('change', e => addFiles(e.target.files));
 
 // ════════════════════════════════════════════
-// CONVERSION
+// CONVERSION CLIENT-SIDE (jsPDF)
 // ════════════════════════════════════════════
-async function startConvert(slot) {
-  if (!token) { openModal('loginModal'); return; }
-  const arr = slot===1 ? files1 : files2;
-  const pending = arr.filter(f=>f.status==='waiting');
-  if (!pending.length) { toast('Aucun fichier à convertir'); return; }
-
-  // Construire FormData
-  const form = new FormData();
-  pending.forEach(f => form.append('files', f.file));
-
-  // Mettre tous en "processing"
-  pending.forEach(f => {
-    f.status = 'processing';
-    setStatus(f.id,'proc','Conversion…');
-    showProg(f.id, true);
-    animProg(f.id);
-  });
-
-  try {
-    const res = await fetch(API+'/convert', {
-      method:'POST',
-      headers:{ 'Authorization':'Bearer '+token },
-      body: form
-    });
-    if (res.status===401) { forceLogout(); return; }
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Erreur serveur');
-
-    data.results.forEach(r => {
-      const fObj = pending.find(f => f.file.name === r.originalName);
-      if (!fObj) return;
-      stopProg(fObj.id);
-      if (r.status==='done') {
-        fObj.status='done';
-        fObj.downloadUrl = API + r.downloadUrl.replace('/api','');
-        setStatus(fObj.id,'done','✓ Prêt');
-        showDownload(fObj.id, fObj.downloadUrl, r.originalName.replace(/\.[^.]+$/,'')+'.pdf');
-      } else {
-        fObj.status='error';
-        setStatus(fObj.id,'err','Erreur');
-      }
-    });
-
-    const ok = data.results.filter(r=>r.status==='done').length;
-    toast(ok+' PDF prêt'+(ok>1?'s':'')+' à télécharger !','success');
-  } catch(e) {
-    pending.forEach(f=>{ stopProg(f.id); setStatus(f.id,'err','Erreur'); f.status='error'; });
-    toast(e.message,'error');
-  }
-}
-
 function setStatus(id, cls, label) {
-  const el = document.getElementById('st_'+id);
-  if(!el) return;
-  el.className = 'badge badge-'+cls;
-  el.textContent = label;
+const el = document.getElementById('st_' + id);
+if (!el) return;
+el.className = 'badge badge-' + cls;
+el.textContent = label;
 }
 
-function showProg(id, show) {
-  const el = document.getElementById('fp_'+id);
-  if(el) el.style.display = show?'block':'none';
+function setProgress(id, pct) {
+const fp = document.getElementById('fp_' + id);
+const bar = document.getElementById('fpb_' + id);
+if (!fp || !bar) return;
+fp.style.display = 'block';
+bar.style.width = pct + '%';
 }
 
-function animProg(id) {
-  const bar = document.getElementById('fpb_'+id);
-  if(!bar) return;
-  let w=5;
-  bar._iv = setInterval(()=>{
-    w += (90-w)*0.08 + Math.random()*3;
-    if(w>=88){w=88; clearInterval(bar._iv);}
-    bar.style.width=w+'%';
-  },200);
+function showDownload(id, blobUrl, filename) {
+const c = document.getElementById('dl_' + id);
+if (!c) return;
+c.innerHTML = '';
+const btn = document.createElement('button');
+btn.className = 'dl-btn';
+btn.innerHTML = '⬇ PDF';
+btn.onclick = () => {
+const a = document.createElement('a');
+a.href = blobUrl;
+a.download = filename;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+toast('Téléchargement démarré 📥', 'success');
+};
+c.appendChild(btn);
 }
 
-function stopProg(id) {
-  const bar = document.getElementById('fpb_'+id);
-  if(!bar) return;
-  clearInterval(bar._iv);
-  bar.style.width='100%';
-  setTimeout(()=>showProg(id,false),400);
-}
+async function convertOne(fObj) {
+return new Promise((resolve) => {
+setStatus(fObj.id, 'proc', 'Conversion…');
+setProgress(fObj.id, 20);
 
-function showDownload(id, url, filename) {
-  const c = document.getElementById('dl_'+id);
-  if(!c) return;
-  const btn = document.createElement('button');
-  btn.className='dl-btn';
-  btn.innerHTML='⬇ PDF';
-  btn.addEventListener('click',()=>triggerDownload(API.replace('/api','')+url.replace(API,''),filename));
-  c.appendChild(btn);
-}
+const reader = new FileReader();
+reader.onload = function(e) {
+const img = new Image();
+img.onload = function() {
+try {
+setProgress(fObj.id, 60);
 
-// Téléchargement universel mobile/desktop
-function triggerDownload(url, filename) {
-  const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
-  fetch(fullUrl, { headers:{ 'Authorization':'Bearer '+token } })
-    .then(r=>r.blob())
-    .then(blob=>{
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      a.style.display='none';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(a.href); },2000);
-      toast('Téléchargement démarré 📥','success');
-    })
-    .catch(()=>toast('Erreur de téléchargement','error'));
-}
+const { jsPDF } = window.jspdf;
 
-// ════════════════════════════════════════════
-// HISTORY
-// ════════════════════════════════════════════
-async function loadHistory() {
-  document.getElementById('dash-convert').style.display='none';
-  document.getElementById('dash-history').style.display='block';
-  document.querySelectorAll('.nav-pill').forEach((p,i)=>{
-    p.classList.toggle('active', i===1);
-  });
+// Determine orientation based on image dimensions
+const isLandscape = img.width > img.height;
+const orientation = isLandscape ? 'landscape' : 'portrait';
 
-  document.getElementById('hist-content').innerHTML =
-    '<div style="text-align:center;padding:40px;color:var(--muted)"><div class="spinner" style="margin:0 auto 12px;width:24px;height:24px;border-width:3px"></div>Chargement...</div>';
-
-  try {
-    const data = await apiGet('/convert/history');
-    renderHistory(data.conversions);
-  } catch(e) {
-    document.getElementById('hist-content').innerHTML =
-      `<div style="text-align:center;padding:40px;color:var(--red)">${e.message}</div>`;
-  }
-}
-
-function renderHistory(convs) {
-  const c = document.getElementById('hist-content');
-  if(!convs.length) {
-    c.innerHTML=`<div class="history-empty"><div class="icon">📭</div><p>Aucune conversion pour l'instant</p></div>`;
-    return;
-  }
-  const grid = document.createElement('div');
-  grid.className='history-grid';
-  convs.forEach(cv=>{
-    const row = document.createElement('div');
-    row.className='hist-row';
-    const date = new Date(cv.createdAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
-    const dlBtn = cv.status==='done'
-      ? `<button class="dl-btn" onclick="triggerDownload('${API}/convert/download/${cv.id}','${cv.originalName.replace(/\.[^.]+$/,'')+'.pdf'}')">⬇ PDF</button>`
-      : '';
-    row.innerHTML=`
-      <span style="font-size:20px">${fileIcon(cv.originalName)}</span>
-      <div class="hist-name" title="${cv.originalName}">${cv.originalName}</div>
-      <span class="badge badge-${cv.status==='done'?'done':cv.status==='error'?'err':'proc'}">${cv.status==='done'?'Fait':cv.status==='error'?'Erreur':'En cours'}</span>
-      ${dlBtn}
-      <span class="hist-date">${date}</span>
-    `;
-    grid.appendChild(row);
-  });
-  c.innerHTML='';
-  c.appendChild(grid);
-}
-
-document.querySelectorAll('.nav-pill').forEach((p,i)=>{
-  p.addEventListener('click',()=>{
-    document.querySelectorAll('.nav-pill').forEach(pp=>pp.classList.remove('active'));
-    p.classList.add('active');
-    if(i===0){
-      document.getElementById('dash-convert').style.display='block';
-      document.getElementById('dash-history').style.display='none';
-    }
-  });
+const pdf = new jsPDF({
+orientation,
+unit: 'px',
+format: [img.width, img.height],
+hotfixes: ['px_scaling']
 });
 
-// ════════════════════════════════════════════
-// API HELPERS
-// ════════════════════════════════════════════
-async function apiPost(path, body) {
-  const res = await fetch(API+path, {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json', ...(token?{'Authorization':'Bearer '+token}:{}) },
-    body: JSON.stringify(body)
-  });
-  const data = await res.json();
-  if(!res.ok) throw new Error(data.error||'Erreur');
-  return data;
+pdf.addImage(e.target.result, 'JPEG', 0, 0, img.width, img.height, undefined, 'FAST');
+
+setProgress(fObj.id, 90);
+
+const blob = pdf.output('blob');
+const blobUrl = URL.createObjectURL(blob);
+
+fObj.blobUrl = blobUrl;
+fObj.status = 'done';
+
+const pdfName = fObj.file.name.replace(/\.[^.]+$/, '') + '.pdf';
+
+setProgress(fObj.id, 100);
+setTimeout(() => {
+document.getElementById('fp_' + fObj.id).style.display = 'none';
+}, 400);
+
+setStatus(fObj.id, 'done', '✓ Prêt');
+showDownload(fObj.id, blobUrl, pdfName);
+resolve({ success: true });
+} catch(err) {
+fObj.status = 'error';
+setStatus(fObj.id, 'err', 'Erreur');
+document.getElementById('fp_' + fObj.id).style.display = 'none';
+resolve({ success: false, error: err.message });
+}
+};
+img.onerror = function() {
+fObj.status = 'error';
+setStatus(fObj.id, 'err', 'Erreur');
+document.getElementById('fp_' + fObj.id).style.display = 'none';
+resolve({ success: false, error: 'Impossible de lire l\'image' });
+};
+img.src = e.target.result;
+};
+reader.onerror = function() {
+fObj.status = 'error';
+setStatus(fObj.id, 'err', 'Erreur lecture');
+resolve({ success: false });
+};
+reader.readAsDataURL(fObj.file);
+});
 }
 
-async function apiGet(path) {
-  const res = await fetch(API+path, {
-    headers:{ 'Authorization':'Bearer '+token }
-  });
-  const data = await res.json();
-  if(!res.ok) throw new Error(data.error||'Erreur');
-  return data;
+async function startConvert() {
+const pending = files.filter(f => f.status === 'waiting');
+if (!pending.length) {
+toast('Aucun fichier à convertir');
+return;
 }
 
-function forceLogout() {
-  toast('Session expirée, reconnectez-vous','error');
-  logout();
+// Disable button during conversion
+const btn = document.querySelector('#ab1 .btn-primary');
+if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Conversion…'; }
+
+let ok = 0, fail = 0;
+
+for (const fObj of pending) {
+const result = await convertOne(fObj);
+if (result.success) ok++;
+else fail++;
+}
+
+if (btn) {
+btn.disabled = false;
+btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M2 12l10-10 10 10"/></svg> Convertir en PDF`;
+}
+
+if (ok > 0 && fail === 0) {
+toast(ok + ' PDF prêt' + (ok > 1 ? 's' : '') + ' à télécharger !', 'success');
+} else if (ok > 0 && fail > 0) {
+toast(ok + ' réussi, ' + fail + ' erreur(s)', 'success');
+} else {
+toast('Erreur lors de la conversion', 'error');
+}
 }
 
 // ════════════════════════════════════════════
-// UI HELPERS
+// TOAST
 // ════════════════════════════════════════════
 let _toastTimer;
-function toast(msg, type='') {
-  const el=document.getElementById('toast');
-  el.innerHTML=msg;
-  el.className='toast show '+(type?type:'');
-  clearTimeout(_toastTimer);
-  _toastTimer=setTimeout(()=>el.className='toast',3200);
+function toast(msg, type = '') {
+const el = document.getElementById('toast');
+el.innerHTML = msg;
+el.className = 'toast show ' + (type || '');
+clearTimeout(_toastTimer);
+_toastTimer = setTimeout(() => el.className = 'toast', 3200);
 }
-
-function setBtnLoading(id, loading) {
-  const btn=document.getElementById(id);
-  if(!btn) return;
-  btn.disabled=loading;
-  btn.innerHTML=loading
-    ? '<div class="spinner"></div> Chargement...'
-    : (id==='btn-login'?'Se connecter →':'Créer mon compte →');
-}
-
-// Enter key sur les forms
-document.getElementById('l-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin() });
-document.getElementById('r-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') doRegister() });
 </script>
+
 </body>
 </html>
