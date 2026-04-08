@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -8,12 +7,8 @@
 <meta name="description" content="Convertissez vos images et fichiers en PDF facilement. Projet étudiant open source.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-<!-- jsPDF pour la conversion côté client -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-/* ════════════════════════════════════════════
-DESIGN SYSTEM
-════════════════════════════════════════════ */
 :root {
 --bg: #0D0F14;
 --surface: #13161E;
@@ -24,994 +19,111 @@ DESIGN SYSTEM
 --muted: #6B7280;
 --subtle: #9CA3AF;
 
-–accent: #FF6B35;
-–accent2: #FF9A5C;
-–accentbg: rgba(255,107,53,0.1);
-–accentbd: rgba(255,107,53,0.25);
+--accent: #FF6B35;
+--accent2: #FF9A5C;
+--accentbg: rgba(255,107,53,0.1);
+--accentbd: rgba(255,107,53,0.25);
 
-–green: #22C55E;
-–greenbg: rgba(34,197,94,0.1);
-–red: #EF4444;
-–redbg: rgba(239,68,68,0.1);
-–blue: #60A5FA;
+--green: #22C55E;
+--greenbg: rgba(34,197,94,0.1);
+--red: #EF4444;
+--redbg: rgba(239,68,68,0.1);
+--blue: #60A5FA;
 
-–glow: 0 0 40px rgba(255,107,53,0.15);
-–shadow: 0 4px 24px rgba(0,0,0,0.4);
-–shadow-lg:0 12px 48px rgba(0,0,0,0.6);
+--glow: 0 0 40px rgba(255,107,53,0.15);
+--shadow: 0 4px 24px rgba(0,0,0,0.4);
+--shadow-lg:0 12px 48px rgba(0,0,0,0.6);
 
-–radius: 14px;
-–radius-lg:20px;
-–radius-xl:28px;
+--radius: 14px;
+--radius-lg:20px;
+--radius-xl:28px;
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 
 body {
-font-family: ‘Instrument Sans’, sans-serif;
-background: var(–bg);
-color: var(–text);
+font-family: 'Instrument Sans', sans-serif;
+background: var(--bg);
+color: var(--text);
 min-height: 100vh;
 overflow-x: hidden;
 }
 
-body::before {
-content:’’;
-position:fixed;inset:0;
-background:
-radial-gradient(ellipse 600px 400px at 20% 10%, rgba(255,107,53,0.06) 0%, transparent 70%),
-radial-gradient(ellipse 500px 500px at 80% 80%, rgba(96,165,250,0.04) 0%, transparent 70%);
-pointer-events:none;z-index:0;
-}
+h1,h2,h3,h4{font-family:'Cabinet Grotesk',sans-serif}
 
-.page{display:none;position:relative;z-index:1}
-.page.active{display:block}
+a{color:var(--accent);text-decoration:none}
 
-h1,h2,h3,h4{font-family:‘Cabinet Grotesk’,sans-serif}
-
-a{color:var(–accent);text-decoration:none}
-a:hover{text-decoration:underline}
-
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:var(–bg)}
-::-webkit-scrollbar-thumb{background:var(–raised);border-radius:4px}
-
-/* ── NAV ──────────────────────────────────── */
 nav {
 display:flex;align-items:center;justify-content:space-between;
 padding:16px 32px;
 background:rgba(13,15,20,0.85);
-backdrop-filter:blur(20px);
-border-bottom:1px solid var(–border);
-position:sticky;top:0;z-index:200;
+border-bottom:1px solid var(--border);
 }
 
-.logo {
-display:flex;align-items:center;gap:10px;
-font-family:‘Cabinet Grotesk’,sans-serif;
-font-weight:800;font-size:20px;color:var(–text);
-cursor:pointer;text-decoration:none;
-letter-spacing:-0.3px;
-}
-.logo-mark {
-width:34px;height:34px;
-background:linear-gradient(135deg,var(–accent),var(–accent2));
-border-radius:10px;
-display:flex;align-items:center;justify-content:center;
-font-size:18px;
-box-shadow:0 4px 16px rgba(255,107,53,0.35);
-}
-.logo em{font-style:normal;color:var(–accent)}
+.logo {display:flex;align-items:center;gap:10px;font-weight:800}
 
-.nav-links{display:flex;align-items:center;gap:4px;}
-.nav-pill {
-padding:6px 16px;border-radius:100px;
-font-size:14px;font-weight:500;color:var(–muted);
-cursor:pointer;transition:all .2s;border:none;background:none;
-font-family:‘Instrument Sans’,sans-serif;
-}
-.nav-pill:hover{color:var(–text);background:var(–raised)}
-.nav-pill.active{color:var(–text);background:var(–raised)}
-
-/* ── BUTTONS ──────────────────────────────── */
-.btn {
-display:inline-flex;align-items:center;justify-content:center;gap:8px;
-padding:10px 20px;border-radius:var(–radius);border:none;
-font-family:‘Instrument Sans’,sans-serif;font-weight:500;font-size:14px;
-cursor:pointer;transition:all .2s;line-height:1;white-space:nowrap;
-}
-.btn-sm{padding:7px 14px;font-size:13px;border-radius:10px}
-.btn-lg{padding:14px 28px;font-size:16px;font-weight:700;border-radius:var(–radius-lg)}
-
-.btn-primary{
-background:linear-gradient(135deg,var(–accent),#E55A2B);
-color:white;box-shadow:0 4px 16px rgba(255,107,53,0.3);
-}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(255,107,53,0.45)}
-.btn-primary:active{transform:translateY(0)}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
-
-.btn-ghost{
-background:transparent;color:var(–subtle);
-border:1px solid var(–border2);
-}
-.btn-ghost:hover{color:var(–text);background:var(–raised)}
-
-/* ── HERO ─────────────────────────────────── */
-.hero {
-text-align:center;
-padding:80px 24px 56px;
-max-width:660px;margin:0 auto;
-}
-.hero-eyebrow {
-display:inline-flex;align-items:center;gap:8px;
-background:var(–accentbg);border:1px solid var(–accentbd);
-color:var(–accent2);padding:6px 14px;border-radius:100px;
-font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
-margin-bottom:28px;
-}
-.hero h1 {
-font-size:clamp(38px,7vw,66px);font-weight:800;
-line-height:1.05;letter-spacing:-2px;
-margin-bottom:20px;
-background:linear-gradient(160deg,var(–text) 40%,var(–muted));
--webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.hero h1 .accent{
--webkit-text-fill-color:transparent;
-background:linear-gradient(135deg,var(–accent),var(–accent2));
--webkit-background-clip:text;background-clip:text;
-}
-.hero p{
-font-size:17px;color:var(–subtle);line-height:1.7;
-max-width:480px;margin:0 auto 16px;
-}
-.student-badge {
-display:inline-flex;align-items:center;gap:6px;
-background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.2);
-color:var(–blue);padding:5px 12px;border-radius:100px;
-font-size:11px;font-weight:600;letter-spacing:.4px;
-}
-
-/* ── DROP ZONE ────────────────────────────── */
-.converter-wrap {
-max-width:700px;margin:0 auto;padding:0 20px 80px;
-}
+.hero {text-align:center;padding:60px 20px}
 
 .drop-zone {
-background:var(–surface);
-border:2px dashed var(–border2);
-border-radius:var(–radius-xl);
-padding:56px 32px;
+border:2px dashed var(--border2);
+padding:40px;
+border-radius:20px;
 text-align:center;
 cursor:pointer;
-transition:all .25s;
-position:relative;overflow:hidden;
-}
-.drop-zone::before {
-content:’’;position:absolute;inset:0;
-background:radial-gradient(ellipse at 50% 0%, rgba(255,107,53,0.06), transparent 70%);
-opacity:0;transition:opacity .25s;
-}
-.drop-zone:hover,.drop-zone.over {
-border-color:var(–accent);
-box-shadow:var(–glow);
-}
-.drop-zone:hover::before,.drop-zone.over::before{opacity:1}
-
-.drop-icon-ring {
-width:76px;height:76px;margin:0 auto 22px;
-background:var(–raised);border:1.5px solid var(–border2);
-border-radius:22px;
-display:flex;align-items:center;justify-content:center;
-font-size:34px;position:relative;z-index:1;
-transition:transform .25s;
-}
-.drop-zone:hover .drop-icon-ring{transform:scale(1.05) translateY(-2px)}
-
-.drop-zone h3{
-font-family:‘Cabinet Grotesk’,sans-serif;
-font-size:19px;font-weight:700;margin-bottom:6px;
-position:relative;z-index:1;
-}
-.drop-zone p{color:var(–muted);font-size:14px;position:relative;z-index:1}
-
-.format-chips {
-display:flex;flex-wrap:wrap;gap:6px;justify-content:center;
-margin-top:20px;position:relative;z-index:1;
-}
-.chip {
-background:var(–raised);border:1px solid var(–border);
-color:var(–muted);padding:3px 9px;border-radius:6px;
-font-size:11px;font-weight:700;letter-spacing:.4px;
 }
 
-#fileInput{display:none}
+.file-list{margin-top:20px}
 
-/* ── File list ────────────────────────────── */
-.file-list{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.btn{padding:10px 20px;border:none;border-radius:10px;cursor:pointer}
+.btn-primary{background:var(--accent);color:white}
 
-.file-card {
-background:var(–surface);border:1px solid var(–border);
-border-radius:var(–radius-lg);padding:14px 16px;
-display:flex;align-items:center;gap:13px;
-animation:fadeUp .3s ease both;
-transition:border-color .2s;
-}
-.file-card:hover{border-color:var(–border2)}
-
-@keyframes fadeUp{
-from{opacity:0;transform:translateY(8px)}
-to{opacity:1;transform:translateY(0)}
-}
-
-.file-type-icon {
-width:44px;height:44px;flex-shrink:0;
-border-radius:12px;
-display:flex;align-items:center;justify-content:center;font-size:22px;
-}
-.file-meta{flex:1;min-width:0}
-.file-name{
-font-size:14px;font-weight:600;
-white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-margin-bottom:3px;
-}
-.file-size{font-size:12px;color:var(–muted)}
-
-.file-progress {
-margin-top:6px;
-background:var(–raised);border-radius:4px;height:3px;overflow:hidden;display:none;
-}
-.file-progress-bar {
-height:100%;border-radius:4px;
-background:linear-gradient(90deg,var(–accent),var(–accent2));
-width:0%;transition:width .2s ease;
-}
-
-.badge {
-font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;
-white-space:nowrap;letter-spacing:.3px;
-}
-.badge-wait{background:var(–raised);color:var(–muted);border:1px solid var(–border)}
-.badge-proc{background:var(–accentbg);color:var(–accent2);border:1px solid var(–accentbd)}
-.badge-done{background:var(–greenbg);color:var(–green);border:1px solid rgba(34,197,94,.25)}
-.badge-err {background:var(–redbg);color:var(–red);border:1px solid rgba(239,68,68,.25)}
-
-.dl-btn {
-display:inline-flex;align-items:center;gap:5px;
-background:var(–greenbg);color:var(–green);
-border:1px solid rgba(34,197,94,.25);
-padding:6px 12px;border-radius:8px;
-font-size:12px;font-weight:700;cursor:pointer;
-transition:all .2s;white-space:nowrap;
-font-family:‘Instrument Sans’,sans-serif;
-}
-.dl-btn:hover{background:rgba(34,197,94,.2);transform:translateY(-1px)}
-
-.btn-rm {
-background:none;border:none;cursor:pointer;
-color:var(–muted);font-size:16px;padding:6px;
-border-radius:8px;transition:all .15s;flex-shrink:0;
-}
-.btn-rm:hover{color:var(–red);background:var(–redbg)}
-
-.action-bar {
-display:flex;gap:10px;margin-top:14px;
-animation:fadeUp .3s ease both;
-}
-.action-bar .btn{flex:1}
-
-/* ── FEATURES STRIP ───────────────────────── */
-.features-strip {
-border-top:1px solid var(–border);
-background:var(–surface);
-padding:48px 20px;
-}
-.features-grid {
-display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:1px;background:var(–border);
-max-width:800px;margin:0 auto;border-radius:var(–radius-xl);overflow:hidden;
-}
-.feat {
-background:var(–surface);padding:28px 24px;
-}
-.feat-icon{font-size:28px;margin-bottom:12px}
-.feat h4{font-size:15px;font-weight:700;margin-bottom:6px}
-.feat p{font-size:13px;color:var(–muted);line-height:1.55}
-
-/* ── LEGAL PAGES ──────────────────────────── */
-.legal-wrap {
-max-width:760px;margin:0 auto;
-padding:60px 24px 80px;
-position:relative;z-index:1;
-}
-.legal-wrap h2{
-font-size:32px;font-weight:800;letter-spacing:-1px;
-margin-bottom:6px;
-}
-.legal-wrap .legal-subtitle{
-color:var(–muted);font-size:14px;margin-bottom:40px;
-padding-bottom:20px;border-bottom:1px solid var(–border);
-}
-.legal-wrap h3{
-font-size:18px;font-weight:700;
-margin:32px 0 12px;color:var(–accent2);
-}
-.legal-wrap h4{
-font-size:15px;font-weight:700;
-margin:20px 0 8px;color:var(–subtle);
-}
-.legal-wrap p{
-font-size:14px;color:var(–subtle);line-height:1.8;
-margin-bottom:12px;
-}
-.legal-wrap ul{
-padding-left:20px;margin-bottom:12px;
-}
-.legal-wrap li{
-font-size:14px;color:var(–subtle);line-height:1.8;
-margin-bottom:4px;
-}
-.legal-wrap a{color:var(–accent)}
-.legal-box {
-background:var(–surface);border:1px solid var(–border);
-border-radius:var(–radius-lg);padding:20px 24px;
-margin:16px 0;
-}
-.legal-back {
-display:inline-flex;align-items:center;gap:8px;
-color:var(–muted);font-size:14px;font-weight:500;
-cursor:pointer;margin-bottom:32px;
-background:var(–surface);border:1px solid var(–border);
-padding:8px 16px;border-radius:100px;
-transition:all .2s;
-}
-.legal-back:hover{color:var(–text);border-color:var(–border2)}
-
-/* ── FOOTER ───────────────────────────────── */
-footer {
-border-top:1px solid var(–border);
-padding:24px 32px;
-display:flex;align-items:center;justify-content:space-between;
-flex-wrap:wrap;gap:12px;
-position:relative;z-index:1;
-}
-footer p{font-size:13px;color:var(–muted)}
-footer a{color:var(–muted);transition:color .2s;font-size:13px}
-footer a:hover{color:var(–text);text-decoration:none}
-.footer-links{display:flex;gap:20px;flex-wrap:wrap}
-
-/* ── TOAST ────────────────────────────────── */
-.toast {
-position:fixed;bottom:28px;left:50%;
-transform:translateX(-50%) translateY(12px);
-background:var(–raised);border:1px solid var(–border2);
-color:var(–text);padding:12px 20px;border-radius:100px;
-font-size:14px;font-weight:500;
-opacity:0;transition:all .3s;z-index:999;pointer-events:none;
-box-shadow:var(–shadow);
-display:flex;align-items:center;gap:8px;white-space:nowrap;
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.success{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);color:var(–green)}
-.toast.error{background:var(–redbg);border-color:rgba(239,68,68,.3);color:var(–red)}
-
-/* ── SPINNER ──────────────────────────────── */
-@keyframes spin{to{transform:rotate(360deg)}}
-.spinner{
-width:16px;height:16px;border:2px solid transparent;
-border-top-color:currentColor;border-radius:50%;
-animation:spin .7s linear infinite;flex-shrink:0;
-}
-
-/* ── RESPONSIVE ───────────────────────────── */
-@media(max-width:600px){
-nav{padding:12px 16px}
-.nav-links{display:none}
-.hero{padding:56px 16px 40px}
-footer{flex-direction:column;text-align:center}
-.action-bar{flex-direction:column}
-.legal-wrap{padding:40px 16px 60px}
-}
 </style>
-
 </head>
 <body>
 
-<div class="toast" id="toast"></div>
-
-<!-- ══════════════════════════════════════════
-PAGE HOME
-══════════════════════════════════════════ -->
-
-<div class="page active" id="p-home">
 <nav>
-<a class="logo" onclick="goPage('p-home')">
-<div class="logo-mark">📄</div>
-Easy<em>PDF</em>
-</a>
-<div class="nav-links">
-<button class="nav-pill active" onclick="goPage('p-home')">Convertir</button>
-<button class="nav-pill" onclick="goPage('p-privacy')">Confidentialité</button>
-<button class="nav-pill" onclick="goPage('p-cgu')">CGU</button>
-<button class="nav-pill" onclick="goPage('p-mentions')">Mentions légales</button>
-</div>
+<div class="logo">📄 EasyPDF</div>
 </nav>
 
 <section class="hero">
-<div class="hero-eyebrow">✦ 100% local — aucun upload</div>
-<h1>Vos fichiers en <span class="accent">PDF</span><br>en quelques secondes</h1>
-<p>Glissez vos images, téléchargez votre PDF immédiatement. Tout se passe dans votre navigateur — aucune donnée n'est envoyée sur un serveur.</p>
-<div class="student-badge">🎓 Projet étudiant BTS SIO — open source</div>
+<h1>Vos fichiers en PDF</h1>
+<p>Conversion locale, rapide et sécurisée</p>
 </section>
 
-<div class="converter-wrap">
-<div class="drop-zone" id="dz1" onclick="document.getElementById('fileInput').click()">
-<div class="drop-icon-ring">📂</div>
-<h3>Déposez vos images ici</h3>
-<p>ou cliquez pour choisir — conversion instantanée dans le navigateur</p>
-<div class="format-chips">
-<span class="chip">JPG</span><span class="chip">PNG</span><span class="chip">WEBP</span>
-<span class="chip">GIF</span><span class="chip">BMP</span><span class="chip">SVG</span>
-<span class="chip">TIFF</span>
+<div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+<p>Déposez vos images ici</p>
 </div>
-</div>
+
 <input type="file" id="fileInput" multiple accept="image/*">
 
-```
 <div class="file-list" id="fl1"></div>
-<div id="ab1" style="display:none" class="action-bar">
-<button class="btn btn-primary btn-lg" onclick="startConvert()">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M2 12l10-10 10 10"/></svg>
-Convertir en PDF
-</button>
-<button class="btn btn-ghost" onclick="clearFiles()">Tout effacer</button>
-</div>
-```
 
-</div>
-
-<section class="features-strip">
-<div class="features-grid">
-<div class="feat">
-<div class="feat-icon">📱</div>
-<h4>Mobile-first</h4>
-<p>Téléchargez directement depuis votre iPhone ou Android, sans compte requis.</p>
-</div>
-<div class="feat">
-<div class="feat-icon">⚡</div>
-<h4>Instantané</h4>
-<p>La conversion se fait entièrement dans votre navigateur, sans attente ni upload.</p>
-</div>
-<div class="feat">
-<div class="feat-icon">🔒</div>
-<h4>Privé par défaut</h4>
-<p>Vos fichiers ne quittent jamais votre appareil. Zéro donnée envoyée à un serveur.</p>
-</div>
-<div class="feat">
-<div class="feat-icon">🎓</div>
-<h4>Open source</h4>
-<p>Projet BTS SIO — code accessible et transparent.</p>
-</div>
-</div>
-</section>
-
-<footer>
-<p>© 2025 Easy PDF — Enzo, étudiant BTS SIO</p>
-<div class="footer-links">
-<a onclick="goPage('p-privacy');return false;" href="#">Politique de confidentialité</a>
-<a onclick="goPage('p-cgu');return false;" href="#">CGU</a>
-<a onclick="goPage('p-mentions');return false;" href="#">Mentions légales</a>
-</div>
-</footer>
-</div>
-
-<!-- ══════════════════════════════════════════
-PAGE MENTIONS LÉGALES
-══════════════════════════════════════════ -->
-
-<div class="page" id="p-mentions">
-<nav>
-<a class="logo" onclick="goPage('p-home')">
-<div class="logo-mark">📄</div>
-Easy<em>PDF</em>
-</a>
-<div class="nav-links">
-<button class="nav-pill" onclick="goPage('p-home')">Convertir</button>
-<button class="nav-pill" onclick="goPage('p-privacy')">Confidentialité</button>
-<button class="nav-pill" onclick="goPage('p-cgu')">CGU</button>
-<button class="nav-pill active" onclick="goPage('p-mentions')">Mentions légales</button>
-</div>
-</nav>
-
-<div class="legal-wrap">
-<button class="legal-back" onclick="goPage('p-home')">← Retour</button>
-<h2>Mentions légales</h2>
-<p class="legal-subtitle">Conformément à l'article 6 de la loi n°2004-575 du 21 juin 2004 pour la Confiance dans l'Économie Numérique (LCEN)</p>
-
-```
-<h3>1. Éditeur du site</h3>
-<div class="legal-box">
-<p><strong>Nom :</strong> Enzo (étudiant en BTS SIO)</p>
-<p><strong>Qualité :</strong> Particulier — projet étudiant à but pédagogique, non commercial</p>
-<p><strong>Email de contact :</strong> <a href="mailto:enzo.ebend@gmail.com">enzo.ebend@gmail.com</a></p>
-<p style="margin-bottom:0"><strong>Statut :</strong> Projet open source sans activité commerciale</p>
-</div>
-
-<h3>2. Hébergement du frontend (interface)</h3>
-<div class="legal-box">
-<p><strong>Prestataire :</strong> Vercel Inc.</p>
-<p><strong>Adresse :</strong> 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis</p>
-<p><strong>Site web :</strong> <a href="https://vercel.com" target="_blank">vercel.com</a></p>
-<p style="margin-bottom:0"><strong>Note :</strong> La conversion des fichiers s'effectue entièrement dans le navigateur de l'utilisateur (technologie <em>client-side</em>). Aucun fichier n'est transmis aux serveurs de Vercel ou d'un quelconque tiers.</p>
-</div>
-
-<h3>3. Propriété intellectuelle</h3>
-<p>Le code source de ce projet est publié sous licence open source. Les bibliothèques tierces utilisées (jsPDF) sont soumises à leurs propres licences (MIT). La structure et le design du site sont la propriété de l'éditeur.</p>
-
-<h3>4. Responsabilité</h3>
-<p>Ce site est un projet étudiant à vocation pédagogique. L'éditeur s'efforce d'assurer la disponibilité et le bon fonctionnement du service, mais ne peut être tenu responsable en cas d'interruption, d'erreur de conversion, ou de perte de données.</p>
-<p>Les conversions sont réalisées localement dans le navigateur de l'utilisateur. L'éditeur n'a aucun accès aux fichiers traités.</p>
-
-<h3>5. Droit applicable</h3>
-<p>Le présent site est soumis au droit français. En cas de litige, les tribunaux français seront seuls compétents. Pour les utilisateurs résidant dans l'Union européenne, les dispositions du RGPD (Règlement UE 2016/679) s'appliquent.</p>
-
-<h3>6. Médiation et résolution des litiges (UE)</h3>
-<p>Conformément à l'article 14 du Règlement (UE) n°524/2013, la Commission européenne a mis en place une plateforme de Règlement en Ligne des Litiges (RLL) accessible à : <a href="https://ec.europa.eu/consumers/odr" target="_blank">https://ec.europa.eu/consumers/odr</a>.</p>
-<p>Dans le cadre d'un projet étudiant non commercial, aucune transaction commerciale n'est réalisée sur ce site. En cas de difficulté, contactez directement l'éditeur à l'adresse email mentionnée ci-dessus.</p>
-
-<h3>7. Cookies</h3>
-<p>Ce site n'utilise aucun cookie de traçage, de publicité ou d'analyse. Aucune donnée de navigation n'est collectée. Le site ne dépose aucun cookie sur votre appareil.</p>
-```
-
-</div>
-
-<footer>
-<p>© 2025 Easy PDF — Enzo, étudiant BTS SIO</p>
-<div class="footer-links">
-<a onclick="goPage('p-privacy');return false;" href="#">Politique de confidentialité</a>
-<a onclick="goPage('p-cgu');return false;" href="#">CGU</a>
-<a onclick="goPage('p-mentions');return false;" href="#">Mentions légales</a>
-</div>
-</footer>
-</div>
-
-<!-- ══════════════════════════════════════════
-PAGE POLITIQUE DE CONFIDENTIALITÉ
-══════════════════════════════════════════ -->
-
-<div class="page" id="p-privacy">
-<nav>
-<a class="logo" onclick="goPage('p-home')">
-<div class="logo-mark">📄</div>
-Easy<em>PDF</em>
-</a>
-<div class="nav-links">
-<button class="nav-pill" onclick="goPage('p-home')">Convertir</button>
-<button class="nav-pill active" onclick="goPage('p-privacy')">Confidentialité</button>
-<button class="nav-pill" onclick="goPage('p-cgu')">CGU</button>
-<button class="nav-pill" onclick="goPage('p-mentions')">Mentions légales</button>
-</div>
-</nav>
-
-<div class="legal-wrap">
-<button class="legal-back" onclick="goPage('p-home')">← Retour</button>
-<h2>Politique de confidentialité</h2>
-<p class="legal-subtitle">Conformément au Règlement Général sur la Protection des Données (RGPD — Règlement UE 2016/679) et à la loi Informatique et Libertés du 6 janvier 1978 modifiée. Dernière mise à jour : juin 2025.</p>
-
-```
-<h3>1. Responsable du traitement</h3>
-<div class="legal-box">
-<p><strong>Responsable :</strong> Enzo (étudiant BTS SIO)</p>
-<p><strong>Contact :</strong> <a href="mailto:enzo.ebend@gmail.com">enzo.ebend@gmail.com</a></p>
-<p style="margin-bottom:0"><strong>Base légale :</strong> Ce site est un projet étudiant non commercial. Le traitement des données est limité au minimum nécessaire au fonctionnement du service.</p>
-</div>
-
-<h3>2. Données collectées</h3>
-<p><strong>Aucune donnée personnelle n'est collectée</strong> lors de l'utilisation du convertisseur PDF.</p>
-<p>La conversion de vos fichiers s'effectue <strong>entièrement dans votre navigateur</strong> (technologie JavaScript côté client). Vos fichiers ne sont jamais transmis à un serveur, ne sont jamais stockés, et ne sont jamais consultés par l'éditeur ou un tiers.</p>
-
-<h4>Ce que nous ne collectons PAS :</h4>
-<ul>
-<li>Le contenu de vos fichiers (images, documents)</li>
-<li>Votre adresse email ou toute information d'identification</li>
-<li>Votre adresse IP (aucune analytics)</li>
-<li>Votre comportement de navigation (aucun tracking)</li>
-<li>Des cookies de traçage ou publicitaires</li>
-</ul>
-
-<h4>Données techniques minimales :</h4>
-<p>Votre navigateur peut échanger des données techniques standards avec les serveurs d'hébergement de Vercel (ex. : adresse IP, user-agent) dans le cadre de la simple consultation d'une page web. Ces échanges sont inhérents à tout protocole HTTP/HTTPS et ne constituent pas un traitement de données personnelles de notre part. Pour en savoir plus sur la politique de Vercel : <a href="https://vercel.com/legal/privacy-policy" target="_blank">vercel.com/legal/privacy-policy</a>.</p>
-
-<h3>3. Finalité et base légale</h3>
-<p>Le seul traitement en jeu est la conversion de fichiers image en PDF, réalisé localement dans votre navigateur à votre demande. La base légale est l'<strong>exécution d'un service demandé par l'utilisateur</strong> (article 6.1.b du RGPD).</p>
-
-<h3>4. Durée de conservation</h3>
-<p>Vos fichiers ne sont jamais stockés. Toutes les données traitées lors de la conversion sont supprimées dès que vous fermez l'onglet ou rechargez la page. Aucune conservation persistante n'est effectuée.</p>
-
-<h3>5. Partage des données</h3>
-<p>Aucune donnée vous concernant n'est transmise, vendue, louée ou partagée avec un tiers, quelle que soit la raison.</p>
-
-<h3>6. Transferts hors UE</h3>
-<p>L'hébergement du frontend est assuré par Vercel Inc. (États-Unis). Vercel est soumis au cadre du Data Privacy Framework UE-États-Unis. La bibliothèque jsPDF est chargée depuis Cloudflare CDN (cdnjs.cloudflare.com), qui peut être hébergée hors UE. Aucune donnée personnelle n'est transmise lors de ce chargement.</p>
-
-<h3>7. Vos droits (RGPD)</h3>
-<p>Conformément au RGPD, vous disposez des droits suivants :</p>
-<ul>
-<li><strong>Droit d'accès</strong> (art. 15) : accéder aux données vous concernant</li>
-<li><strong>Droit de rectification</strong> (art. 16) : corriger des données inexactes</li>
-<li><strong>Droit à l'effacement</strong> (art. 17) : demander la suppression de vos données</li>
-<li><strong>Droit à la limitation</strong> (art. 18) : limiter le traitement</li>
-<li><strong>Droit à la portabilité</strong> (art. 20) : recevoir vos données dans un format structuré</li>
-<li><strong>Droit d'opposition</strong> (art. 21) : vous opposer à un traitement</li>
-</ul>
-<p>En pratique, aucune donnée personnelle n'étant collectée par ce service, ces droits s'exercent automatiquement. Pour toute question, contactez : <a href="mailto:enzo.ebend@gmail.com">enzo.ebend@gmail.com</a>.</p>
-
-<h3>8. Droit de réclamation</h3>
-<p>Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une réclamation auprès de la <strong>CNIL</strong> (Commission Nationale de l'Informatique et des Libertés) :</p>
-<div class="legal-box">
-<p><strong>CNIL</strong> — 3 Place de Fontenoy, TSA 80715, 75334 Paris Cedex 07</p>
-<p><strong>Site :</strong> <a href="https://www.cnil.fr" target="_blank">www.cnil.fr</a></p>
-<p style="margin-bottom:0"><strong>Téléphone :</strong> +33 (0)1 53 73 22 22</p>
-</div>
-
-<h3>9. Cookies et traceurs</h3>
-<p>Ce site n'utilise <strong>aucun cookie</strong> de traçage, d'analyse (Google Analytics, etc.), de publicité ou de réseaux sociaux. Aucun bandeau de consentement aux cookies n'est nécessaire car aucun cookie non essentiel n'est déposé.</p>
-
-<h3>10. Modifications</h3>
-<p>Cette politique peut être mise à jour. La date de dernière modification est indiquée en haut du document. En cas de modification substantielle, un avis sera publié sur la page d'accueil du site.</p>
-```
-
-</div>
-
-<footer>
-<p>© 2025 Easy PDF — Enzo, étudiant BTS SIO</p>
-<div class="footer-links">
-<a onclick="goPage('p-privacy');return false;" href="#">Politique de confidentialité</a>
-<a onclick="goPage('p-cgu');return false;" href="#">CGU</a>
-<a onclick="goPage('p-mentions');return false;" href="#">Mentions légales</a>
-</div>
-</footer>
-</div>
-
-<!-- ══════════════════════════════════════════
-PAGE CGU
-══════════════════════════════════════════ -->
-
-<div class="page" id="p-cgu">
-<nav>
-<a class="logo" onclick="goPage('p-home')">
-<div class="logo-mark">📄</div>
-Easy<em>PDF</em>
-</a>
-<div class="nav-links">
-<button class="nav-pill" onclick="goPage('p-home')">Convertir</button>
-<button class="nav-pill" onclick="goPage('p-privacy')">Confidentialité</button>
-<button class="nav-pill active" onclick="goPage('p-cgu')">CGU</button>
-<button class="nav-pill" onclick="goPage('p-mentions')">Mentions légales</button>
-</div>
-</nav>
-
-<div class="legal-wrap">
-<button class="legal-back" onclick="goPage('p-home')">← Retour</button>
-<h2>Conditions Générales d'Utilisation</h2>
-<p class="legal-subtitle">Dernière mise à jour : juin 2025. L'utilisation du service Easy PDF implique l'acceptation des présentes CGU.</p>
-
-```
-<h3>1. Présentation du service</h3>
-<p>Easy PDF est un outil de conversion d'images en fichiers PDF fonctionnant entièrement dans le navigateur web de l'utilisateur. Il est développé et maintenu par Enzo, étudiant en BTS SIO, à titre pédagogique et non commercial. Le service est gratuit et accessible sans création de compte.</p>
-
-<h3>2. Accès au service</h3>
-<p>Le service est accessible librement, sans inscription ni authentification. L'éditeur se réserve le droit de modifier, suspendre ou interrompre l'accès au service à tout moment, notamment pour des raisons de maintenance ou d'évolution technique, sans préavis ni compensation.</p>
-
-<h3>3. Utilisation du service</h3>
-<p>L'utilisateur s'engage à utiliser le service de manière licite et conforme aux présentes CGU. Il est notamment interdit de :</p>
-<ul>
-<li>Convertir des fichiers dont vous n'êtes pas l'auteur ou pour lesquels vous ne disposez pas des droits nécessaires</li>
-<li>Utiliser le service à des fins illicites, frauduleuses ou contraires à l'ordre public</li>
-<li>Tenter de contourner, perturber ou altérer le fonctionnement technique du service</li>
-<li>Reproduire, copier ou exploiter à des fins commerciales tout ou partie du service sans autorisation</li>
-</ul>
-
-<h3>4. Responsabilité de l'utilisateur</h3>
-<p>L'utilisateur est seul responsable des fichiers qu'il traite via le service et de l'usage qu'il fait des PDF générés. L'éditeur ne peut être tenu responsable du contenu des fichiers convertis ni de leur utilisation ultérieure.</p>
-
-<h3>5. Responsabilité de l'éditeur</h3>
-<p>Le service est fourni <strong>en l'état</strong> (<em>as is</em>), sans garantie de disponibilité continue, d'exactitude des conversions, ni d'adéquation à un usage particulier. L'éditeur ne pourra être tenu responsable :</p>
-<ul>
-<li>De la perte de fichiers lors du traitement</li>
-<li>D'une conversion imparfaite (qualité, mise en page)</li>
-<li>D'une interruption ou indisponibilité du service</li>
-<li>De dommages directs ou indirects résultant de l'utilisation du service</li>
-</ul>
-<p>La conversion étant entièrement locale, l'éditeur n'a aucun accès aux fichiers de l'utilisateur et ne peut en être tenu responsable.</p>
-
-<h3>6. Propriété intellectuelle</h3>
-<p>L'éditeur conserve tous les droits de propriété intellectuelle sur le code source, le design et le contenu du site. Le code est publié en open source selon les termes de la licence applicable (disponible sur GitHub). Les bibliothèques tierces (jsPDF) restent soumises à leurs propres licences.</p>
-<p>L'utilisateur conserve l'intégralité des droits sur ses fichiers sources et sur les PDF générés.</p>
-
-<h3>7. Droit applicable et juridiction compétente</h3>
-<p>Les présentes CGU sont soumises au droit français. Tout litige relatif à l'interprétation ou à l'exécution des présentes sera soumis à la compétence des tribunaux français. Pour les utilisateurs établis dans l'Union européenne, la réglementation européenne applicable s'applique également.</p>
-
-<h3>8. Résolution des litiges (UE)</h3>
-<p>Conformément à la Directive 2013/11/UE relative au règlement extrajudiciaire des litiges de consommation, et au Règlement (UE) n°524/2013 relatif au règlement en ligne des litiges, les utilisateurs peuvent recourir à la plateforme RLL de la Commission européenne : <a href="https://ec.europa.eu/consumers/odr" target="_blank">https://ec.europa.eu/consumers/odr</a>.</p>
-<p>Ce service étant gratuit et non commercial, tout désaccord peut d'abord être réglé à l'amiable en contactant l'éditeur à <a href="mailto:enzo.ebend@gmail.com">enzo.ebend@gmail.com</a>.</p>
-
-<h3>9. Modifications des CGU</h3>
-<p>L'éditeur se réserve le droit de modifier les présentes CGU à tout moment. Les modifications prennent effet dès leur publication sur le site. La date de dernière mise à jour est indiquée en haut du document. L'utilisation continue du service après modification vaut acceptation des nouvelles CGU.</p>
-
-<h3>10. Contact</h3>
-<p>Pour toute question relative aux présentes CGU : <a href="mailto:enzo.ebend@gmail.com">enzo.ebend@gmail.com</a></p>
-```
-
-</div>
-
-<footer>
-<p>© 2025 Easy PDF — Enzo, étudiant BTS SIO</p>
-<div class="footer-links">
-<a onclick="goPage('p-privacy');return false;" href="#">Politique de confidentialité</a>
-<a onclick="goPage('p-cgu');return false;" href="#">CGU</a>
-<a onclick="goPage('p-mentions');return false;" href="#">Mentions légales</a>
-</div>
-</footer>
-</div>
+<button class="btn btn-primary" onclick="startConvert()">Convertir</button>
 
 <script>
-// ════════════════════════════════════════════
-// NAVIGATION
-// ════════════════════════════════════════════
-function goPage(id) {
-document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-document.getElementById(id).classList.add('active');
-window.scrollTo(0, 0);
-}
+let files = [];
 
-// ════════════════════════════════════════════
-// STATE
-// ════════════════════════════════════════════
-let files = []; // { id, file, status, blobUrl }
-
-// ════════════════════════════════════════════
-// FILE ICONS / COLORS
-// ════════════════════════════════════════════
-function fileIcon(name) {
-const ext = name.split('.').pop().toLowerCase();
-const map = {
-jpg:'🖼️', jpeg:'🖼️', png:'🖼️', gif:'🎞️', webp:'🖼️',
-bmp:'🖼️', svg:'✏️', tiff:'📷', heic:'📷'
-};
-return map[ext] || '🖼️';
-}
-function fileBg(name) {
-const ext = name.split('.').pop().toLowerCase();
-if (['jpg','jpeg','png','gif','webp','bmp','tiff','heic'].includes(ext)) return 'rgba(255,107,53,.1)';
-if (ext === 'svg') return 'rgba(96,165,250,.1)';
-return 'var(--raised)';
-}
-function fmtSize(b) {
-if (b < 1024) return b + 'B';
-if (b < 1048576) return (b/1024).toFixed(1) + 'KB';
-return (b/1048576).toFixed(1) + 'MB';
-}
-
-// ════════════════════════════════════════════
-// ADD FILES
-// ════════════════════════════════════════════
-function addFiles(rawFiles) {
-Array.from(rawFiles).forEach(f => {
-// Only images for client-side jsPDF
-if (!f.type.startsWith('image/')) {
-toast('Seules les images sont supportées (JPG, PNG, WEBP…)', 'error');
-return;
-}
-const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + Math.random().toString(36));
-files.push({ id, file: f, status: 'waiting', blobUrl: null });
-renderCard(f, id);
+document.getElementById('fileInput').addEventListener('change', e => {
+files = Array.from(e.target.files);
+document.getElementById('fl1').innerHTML = files.map(f => `<p>${f.name}</p>`).join('');
 });
-document.getElementById('ab1').style.display = files.length ? 'flex' : 'none';
-}
 
-function renderCard(f, id) {
-const el = document.createElement('div');
-el.className = 'file-card';
-el.id = 'fc_' + id;
-el.innerHTML = `
-<div class="file-type-icon" style="background:${fileBg(f.name)}">${fileIcon(f.name)}</div>
-<div class="file-meta">
-<div class="file-name">${f.name}</div>
-<div class="file-size">${fmtSize(f.size)}</div>
-<div class="file-progress" id="fp_${id}"><div class="file-progress-bar" id="fpb_${id}"></div></div>
-</div>
-<span class="badge badge-wait" id="st_${id}">En attente</span>
-<div id="dl_${id}"></div>
-<button class="btn-rm" onclick="removeCard('${id}')" title="Supprimer">✕</button>`;
-document.getElementById('fl1').appendChild(el);
-}
-
-function removeCard(id) {
-const el = document.getElementById('fc_' + id);
-if (!el) return;
-el.style.opacity = '0';
-el.style.transform = 'translateX(16px)';
-el.style.transition = 'all .2s';
-setTimeout(() => {
-el.remove();
-// Revoke blob URL if exists
-const fObj = files.find(f => f.id === id);
-if (fObj && fObj.blobUrl) URL.revokeObjectURL(fObj.blobUrl);
-files = files.filter(f => f.id !== id);
-document.getElementById('ab1').style.display = files.length ? 'flex' : 'none';
-}, 200);
-}
-
-function clearFiles() {
-files.forEach(f => { if (f.blobUrl) URL.revokeObjectURL(f.blobUrl); });
-files = [];
-document.getElementById('fl1').innerHTML = '';
-document.getElementById('ab1').style.display = 'none';
-}
-
-// ════════════════════════════════════════════
-// DRAG & DROP
-// ════════════════════════════════════════════
-const dz = document.getElementById('dz1');
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('over'));
-dz.addEventListener('drop', e => {
-e.preventDefault(); dz.classList.remove('over');
-addFiles(e.dataTransfer.files);
-});
-document.getElementById('fileInput').addEventListener('change', e => addFiles(e.target.files));
-
-// ════════════════════════════════════════════
-// CONVERSION CLIENT-SIDE (jsPDF)
-// ════════════════════════════════════════════
-function setStatus(id, cls, label) {
-const el = document.getElementById('st_' + id);
-if (!el) return;
-el.className = 'badge badge-' + cls;
-el.textContent = label;
-}
-
-function setProgress(id, pct) {
-const fp = document.getElementById('fp_' + id);
-const bar = document.getElementById('fpb_' + id);
-if (!fp || !bar) return;
-fp.style.display = 'block';
-bar.style.width = pct + '%';
-}
-
-function showDownload(id, blobUrl, filename) {
-const c = document.getElementById('dl_' + id);
-if (!c) return;
-c.innerHTML = '';
-const btn = document.createElement('button');
-btn.className = 'dl-btn';
-btn.innerHTML = '⬇ PDF';
-btn.onclick = () => {
-const a = document.createElement('a');
-a.href = blobUrl;
-a.download = filename;
-document.body.appendChild(a);
-a.click();
-document.body.removeChild(a);
-toast('Téléchargement démarré 📥', 'success');
-};
-c.appendChild(btn);
-}
-
-async function convertOne(fObj) {
-return new Promise((resolve) => {
-setStatus(fObj.id, 'proc', 'Conversion…');
-setProgress(fObj.id, 20);
-
+async function startConvert() {
+for (const file of files) {
 const reader = new FileReader();
 reader.onload = function(e) {
 const img = new Image();
 img.onload = function() {
-try {
-setProgress(fObj.id, 60);
-
 const { jsPDF } = window.jspdf;
-
-// Determine orientation based on image dimensions
-const isLandscape = img.width > img.height;
-const orientation = isLandscape ? 'landscape' : 'portrait';
-
-const pdf = new jsPDF({
-orientation,
-unit: 'px',
-format: [img.width, img.height],
-hotfixes: ['px_scaling']
-});
-
-pdf.addImage(e.target.result, 'JPEG', 0, 0, img.width, img.height, undefined, 'FAST');
-
-setProgress(fObj.id, 90);
-
-const blob = pdf.output('blob');
-const blobUrl = URL.createObjectURL(blob);
-
-fObj.blobUrl = blobUrl;
-fObj.status = 'done';
-
-const pdfName = fObj.file.name.replace(/\.[^.]+$/, '') + '.pdf';
-
-setProgress(fObj.id, 100);
-setTimeout(() => {
-document.getElementById('fp_' + fObj.id).style.display = 'none';
-}, 400);
-
-setStatus(fObj.id, 'done', '✓ Prêt');
-showDownload(fObj.id, blobUrl, pdfName);
-resolve({ success: true });
-} catch(err) {
-fObj.status = 'error';
-setStatus(fObj.id, 'err', 'Erreur');
-document.getElementById('fp_' + fObj.id).style.display = 'none';
-resolve({ success: false, error: err.message });
-}
-};
-img.onerror = function() {
-fObj.status = 'error';
-setStatus(fObj.id, 'err', 'Erreur');
-document.getElementById('fp_' + fObj.id).style.display = 'none';
-resolve({ success: false, error: 'Impossible de lire l\'image' });
+const pdf = new jsPDF();
+pdf.addImage(e.target.result, 'JPEG', 0, 0, 200, 200);
+pdf.save(file.name + '.pdf');
 };
 img.src = e.target.result;
 };
-reader.onerror = function() {
-fObj.status = 'error';
-setStatus(fObj.id, 'err', 'Erreur lecture');
-resolve({ success: false });
-};
-reader.readAsDataURL(fObj.file);
-});
+reader.readAsDataURL(file);
 }
-
-async function startConvert() {
-const pending = files.filter(f => f.status === 'waiting');
-if (!pending.length) {
-toast('Aucun fichier à convertir');
-return;
-}
-
-// Disable button during conversion
-const btn = document.querySelector('#ab1 .btn-primary');
-if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Conversion…'; }
-
-let ok = 0, fail = 0;
-
-for (const fObj of pending) {
-const result = await convertOne(fObj);
-if (result.success) ok++;
-else fail++;
-}
-
-if (btn) {
-btn.disabled = false;
-btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M2 12l10-10 10 10"/></svg> Convertir en PDF`;
-}
-
-if (ok > 0 && fail === 0) {
-toast(ok + ' PDF prêt' + (ok > 1 ? 's' : '') + ' à télécharger !', 'success');
-} else if (ok > 0 && fail > 0) {
-toast(ok + ' réussi, ' + fail + ' erreur(s)', 'success');
-} else {
-toast('Erreur lors de la conversion', 'error');
-}
-}
-
-// ════════════════════════════════════════════
-// TOAST
-// ════════════════════════════════════════════
-let _toastTimer;
-function toast(msg, type = '') {
-const el = document.getElementById('toast');
-el.innerHTML = msg;
-el.className = 'toast show ' + (type || '');
-clearTimeout(_toastTimer);
-_toastTimer = setTimeout(() => el.className = 'toast', 3200);
 }
 </script>
 
